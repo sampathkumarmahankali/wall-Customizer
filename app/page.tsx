@@ -13,6 +13,9 @@ import WallSettings from "@/components/wall-settings"
 import ExportDialog from "@/components/export-dialog"
 import ImageEditor from "@/components/image-editor"
 
+// --- Type Definitions ---
+
+// Wall background option (preset or custom)
 interface BackgroundOption {
   name: string
   value: string
@@ -20,6 +23,7 @@ interface BackgroundOption {
   isCustom?: boolean
 }
 
+// Image filter settings
 interface ImageFilters {
   brightness: number
   contrast: number
@@ -28,12 +32,14 @@ interface ImageFilters {
   blur: number
 }
 
+// Frame style for images
 interface ImageFrame {
   type: "none" | "classic" | "modern" | "vintage" | "ornate" | "rustic"
   width: number
   color: string
 }
 
+// Main image data structure for images on the wall
 interface ImageData {
   id: number
   src: string
@@ -58,11 +64,13 @@ interface ImageData {
   collageImages?: string[]
 }
 
+// Custom background type (for uploaded backgrounds)
 interface CustomBackground extends BackgroundOption {
   isCustom: true
   file?: File
 }
 
+// Wall border style
 interface WallBorder {
   width: number
   color: string
@@ -70,6 +78,7 @@ interface WallBorder {
   radius: number
 }
 
+// Preset wall backgrounds
 const backgroundOptions: BackgroundOption[] = [
   {
     name: "Blank White Wall",
@@ -103,32 +112,48 @@ const backgroundOptions: BackgroundOption[] = [
   },
 ]
 
+// --- Main Wall Editor Component ---
 export default function WallEditor() {
+  // --- State Variables ---
+  // List of images on the wall
   const [images, setImages] = useState<ImageData[]>([])
+  // Wall size in pixels
   const [wallSize, setWallSize] = useState({ width: 600, height: 400 }) // Changed default size
+  // Whether to show the wall editor or the initial setup form
   const [showWall, setShowWall] = useState(false)
+  // Selected wall background (preset or custom)
   const [wallBackground, setWallBackground] = useState<BackgroundOption>(backgroundOptions[0])
+  // Wall color (used if blank wall is selected)
   const [wallColor, setWallColor] = useState("#ffffff")
+  // List of custom uploaded backgrounds
   const [customBackgrounds, setCustomBackgrounds] = useState<CustomBackground[]>([])
+  // Wall border style
   const [wallBorder, setWallBorder] = useState<WallBorder>({
     width: 0,
     color: "#000000",
     style: "solid",
     radius: 0,
   })
+  // Refs for file inputs
   const fileInputRef = useRef<HTMLInputElement>(null)
   const backgroundInputRef = useRef<HTMLInputElement>(null)
+  // UI state for dialogs and editors
   const [showSettings, setShowSettings] = useState(false)
   const [showImageEditor, setShowImageEditor] = useState(false)
   const [editingImageId, setEditingImageId] = useState<number | null>(null)
   const [showExportDialog, setShowExportDialog] = useState(false)
+  // Ref to the wall DOM node (for export)
   const wallRef = useRef<HTMLDivElement>(null)
 
+  // --- Handlers and Utility Functions ---
+
+  // Handle wall setup form submit
   const handleWallSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setShowWall(true)
   }
 
+  // Handle image upload (add images to wall)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     const imageObjs: ImageData[] = files.map((file) => ({
@@ -162,12 +187,14 @@ export default function WallEditor() {
     setImages((prev) => [...prev, ...imageObjs])
   }
 
+  // Update an image's properties by id
   const updateImage = (id: number, updates: Partial<ImageData>) => {
     setImages((prev) =>
       prev.map((img) => (img.id === id ? { ...img, ...updates, style: { ...img.style, ...updates.style } } : img)),
     )
   }
 
+  // Handle custom background image upload
   const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     const customBgs: CustomBackground[] = files.map((file) => ({
@@ -180,6 +207,7 @@ export default function WallEditor() {
     setCustomBackgrounds((prev) => [...prev, ...customBgs])
   }
 
+  // Remove a custom background
   const removeCustomBackground = (bgToRemove: CustomBackground) => {
     setCustomBackgrounds((prev) => prev.filter((bg) => bg.value !== bgToRemove.value))
     if (wallBackground.value === bgToRemove.value) {
@@ -188,19 +216,23 @@ export default function WallEditor() {
     URL.revokeObjectURL(bgToRemove.value)
   }
 
+  // Start editing an image
   const handleEditImage = (imageId: number) => {
     setEditingImageId(imageId)
   }
 
+  // Complete image editing and update image
   const handleImageEditComplete = (editedImage: ImageData) => {
     updateImage(editedImage.id, editedImage)
     setEditingImageId(null)
   }
 
+  // Delete an image from the wall
   const deleteImage = (id: number) => {
     setImages((prev) => prev.filter((img) => img.id !== id))
   }
 
+  // Create a collage from selected images
   const createCollage = (selectedImages: string[]) => {
     if (selectedImages.length < 2) return
 
@@ -238,14 +270,18 @@ export default function WallEditor() {
     setImages((prev) => [...prev, collageImage])
   }
 
+  // Combine preset and custom backgrounds
   const allBackgrounds = [...backgroundOptions, ...customBackgrounds]
+  // Get the image currently being edited
   const editingImage = editingImageId ? images.find((img) => img.id === editingImageId) : null
 
   // Get current wall background value (use wall color if blank white wall is selected)
   const currentWallBackground = wallBackground.name === "Blank White Wall" ? wallColor : wallBackground.value
 
+  // --- Render ---
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      {/* Initial wall setup form */}
       {!showWall ? (
         <div className="max-w-4xl mx-auto">
           <Card>
@@ -260,6 +296,7 @@ export default function WallEditor() {
             <CardContent>
               <form onSubmit={handleWallSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Wall width input */}
                   <div className="space-y-2">
                     <Label htmlFor="width">Wall Width (px)</Label>
                     <Input
@@ -271,6 +308,7 @@ export default function WallEditor() {
                     />
                   </div>
 
+                  {/* Wall height input */}
                   <div className="space-y-2">
                     <Label htmlFor="height">Wall Height (px)</Label>
                     <Input
@@ -283,6 +321,7 @@ export default function WallEditor() {
                   </div>
                 </div>
 
+                {/* Wall background selection */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <Label className="text-base font-medium">Wall Background</Label>
@@ -298,6 +337,7 @@ export default function WallEditor() {
                     </Button>
                   </div>
 
+                  {/* Hidden file input for custom backgrounds */}
                   <input
                     type="file"
                     ref={backgroundInputRef}
@@ -307,6 +347,7 @@ export default function WallEditor() {
                     className="hidden"
                   />
 
+                  {/* Background options grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {allBackgrounds.map((bg, index) => (
                       <div
@@ -324,8 +365,10 @@ export default function WallEditor() {
                         }}
                         title={bg.name}
                       >
+                        {/* Overlay for selecting background */}
                         <div className="absolute inset-0" onClick={() => setWallBackground(bg)} />
 
+                        {/* Remove button for custom backgrounds */}
                         {bg.isCustom && (
                           <Button
                             type="button"
@@ -341,6 +384,7 @@ export default function WallEditor() {
                           </Button>
                         )}
 
+                        {/* Background name label */}
                         <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-1 opacity-0 hover:opacity-100 transition-opacity">
                           {bg.name}
                           {bg.isCustom && " (Custom)"}
@@ -349,6 +393,7 @@ export default function WallEditor() {
                     ))}
                   </div>
 
+                  {/* Wall color picker if blank wall is selected */}
                   {wallBackground.name === "Blank White Wall" && (
                     <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                       <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
@@ -368,6 +413,7 @@ export default function WallEditor() {
                   )}
                 </div>
 
+                {/* Create wall button */}
                 <Button type="submit" className="w-full" size="lg">
                   <Plus className="mr-2 h-4 w-4" />
                   Create Your Wall
@@ -377,6 +423,7 @@ export default function WallEditor() {
           </Card>
         </div>
       ) : (
+        // --- Wall Editor UI ---
         <div className="max-w-7xl mx-auto">
           <Card className="mb-6">
             <CardContent className="p-6">
@@ -388,7 +435,9 @@ export default function WallEditor() {
                   <p className="text-sm text-gray-600">Wall Aura Editor</p>
                 </div>
 
+                {/* Top action buttons */}
                 <div className="flex gap-3">
+                  {/* Add images button */}
                   <Button
                     onClick={() => fileInputRef.current?.click()}
                     variant="default"
@@ -398,6 +447,7 @@ export default function WallEditor() {
                     Add Images
                   </Button>
 
+                  {/* Toggle image editor sidebar */}
                   <Button
                     onClick={() => setShowImageEditor(!showImageEditor)}
                     variant="default"
@@ -407,6 +457,7 @@ export default function WallEditor() {
                     {showImageEditor ? "Hide" : "Edit"} Images
                   </Button>
 
+                  {/* Export wall button */}
                   <Button
                     onClick={() => setShowExportDialog(true)}
                     variant="default"
@@ -416,6 +467,7 @@ export default function WallEditor() {
                     Export
                   </Button>
 
+                  {/* Wall settings button */}
                   <Button
                     onClick={() => setShowSettings(true)}
                     variant="outline"
@@ -429,6 +481,7 @@ export default function WallEditor() {
             </CardContent>
           </Card>
 
+          {/* Hidden file input for image uploads */}
           <input
             type="file"
             ref={fileInputRef}
@@ -453,6 +506,7 @@ export default function WallEditor() {
                       position: "relative",
                     }}
                   >
+                    {/* Wall rendering with images */}
                     <Wall
                       width={wallSize.width}
                       height={wallSize.height}
@@ -490,6 +544,7 @@ export default function WallEditor() {
             )}
           </div>
 
+          {/* Wall settings dialog */}
           {showSettings && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <WallSettings
@@ -510,6 +565,7 @@ export default function WallEditor() {
             </div>
           )}
 
+          {/* Export dialog */}
           {showExportDialog && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <ExportDialog
