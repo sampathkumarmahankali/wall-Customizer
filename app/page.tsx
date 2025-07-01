@@ -12,6 +12,7 @@ import ImageBlock from "@/components/image-block"
 import WallSettings from "@/components/wall-settings"
 import ExportDialog from "@/components/export-dialog"
 import ImageEditor from "@/components/image-editor"
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
 
 // --- Type Definitions ---
 
@@ -112,6 +113,16 @@ const backgroundOptions: BackgroundOption[] = [
   },
 ]
 
+// Sample images filenames (from public/samples)
+const sampleImages = [
+  "/samples/garland-removebg-preview.png",
+  "/samples/garland2-removebg-preview.png",
+  "/samples/garland3-removebg-preview.png",
+  "/samples/table7-removebg-preview.png",
+  "/samples/fruits_basket-removebg-preview.png",
+  "/samples/candle-6262984_1280-removebg-preview.png",
+]
+
 // --- Main Wall Editor Component ---
 export default function WallEditor() {
   // --- State Variables ---
@@ -144,6 +155,8 @@ export default function WallEditor() {
   const [showExportDialog, setShowExportDialog] = useState(false)
   // Ref to the wall DOM node (for export)
   const wallRef = useRef<HTMLDivElement>(null)
+  // Add state for sample images dialog
+  const [showSampleDialog, setShowSampleDialog] = useState(false)
 
   // --- Handlers and Utility Functions ---
 
@@ -277,6 +290,37 @@ export default function WallEditor() {
 
   // Get current wall background value (use wall color if blank white wall is selected)
   const currentWallBackground = wallBackground.name === "Blank White Wall" ? wallColor : wallBackground.value
+
+  // Handler to add a sample image to the wall
+  const handleAddSampleImage = (src: string) => {
+    const newImg: ImageData = {
+      id: Date.now() + Math.random(),
+      src,
+      originalSrc: src,
+      style: { width: 200, height: 200 },
+      position: { x: 50, y: 50 },
+      filters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        hue: 0,
+        blur: 0,
+      },
+      shape: "rectangle",
+      frame: {
+        type: "none",
+        width: 0,
+        color: "#8B4513",
+      },
+      borderStyle: {
+        width: 0,
+        color: "#000000",
+        style: "solid",
+      },
+    }
+    setImages((prev) => [...prev, newImg])
+    setShowSampleDialog(false)
+  }
 
   // --- Render ---
   return (
@@ -447,6 +491,16 @@ export default function WallEditor() {
                     Add Images
                   </Button>
 
+                  {/* Decors button */}
+                  <Button
+                    onClick={() => setShowSampleDialog(true)}
+                    variant="default"
+                    className="bg-orange-500 hover:bg-orange-600"
+                  >
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    Decors
+                  </Button>
+
                   {/* Toggle image editor sidebar */}
                   <Button
                     onClick={() => setShowImageEditor(!showImageEditor)}
@@ -577,6 +631,32 @@ export default function WallEditor() {
                 onClose={() => setShowExportDialog(false)}
               />
             </div>
+          )}
+
+          {/* Decors Dialog */}
+          {showSampleDialog && (
+            <Dialog open={showSampleDialog} onOpenChange={setShowSampleDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Select a Decor</DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-2">
+                  {sampleImages.map((src, idx) => (
+                    <div
+                      key={src}
+                      className="cursor-pointer border-2 rounded-lg overflow-hidden hover:border-primary transition-all"
+                      onClick={() => handleAddSampleImage(src)}
+                      title="Add to wall"
+                    >
+                      <img src={src} alt={`Decor ${idx + 1}`} className="w-full h-32 object-contain bg-white" />
+                    </div>
+                  ))}
+                </div>
+                <DialogClose asChild>
+                  <Button variant="outline" className="w-full mt-4">Close</Button>
+                </DialogClose>
+              </DialogContent>
+            </Dialog>
           )}
         </div>
       )}

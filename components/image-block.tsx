@@ -197,7 +197,7 @@ export default function ImageBlock({ image, onUpdate, onEdit, onDelete }: ImageB
         zIndex: isSelected ? 10 : 1,
       }}
       className="group hover:border-gray-300"
-      onClick={(e) => {
+      onClick={(e: React.MouseEvent<HTMLDivElement>) => {
         e.stopPropagation()
         if (onEdit) {
           onEdit() // Left click to edit
