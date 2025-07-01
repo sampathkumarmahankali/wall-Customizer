@@ -29,12 +29,12 @@ interface ImageData {
     hue: number
     blur: number
   }
-  shape: string
+  shape: "rectangle" | "circle" | "oval" | "star" | "heart"
   frame: ImageFrame
   borderStyle: {
     width: number
-    style: string
     color: string
+    style: "solid" | "dashed" | "dotted"
   }
   isCollage?: boolean
   collageImages?: string[]
@@ -160,7 +160,7 @@ export default function ImageBlock({ image, onUpdate, onEdit, onDelete }: ImageB
         setIsSelected(true)
         setIsDragging(true)
       }}
-      onDragStop={(e, d) => {
+      onDragStop={(e: any, d) => {
         const x = Math.round(d.x)
         const y = Math.round(d.y)
         onUpdate(image.id, { position: { x, y } })
@@ -171,7 +171,7 @@ export default function ImageBlock({ image, onUpdate, onEdit, onDelete }: ImageB
         setIsSelected(true)
         setIsResizing(true)
       }}
-      onResizeStop={(e, direction, ref, delta, position) => {
+      onResizeStop={(e: any, direction, ref, delta, position) => {
         handleResize(e, direction, ref, delta, position)
         setIsResizing(false)
         setTimeout(() => setIsSelected(false), 2000)
