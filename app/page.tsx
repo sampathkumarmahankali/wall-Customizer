@@ -119,6 +119,7 @@ const sampleImages = [
   "/samples/garland2-removebg-preview.png",
   "/samples/garland3-removebg-preview.png",
   "/samples/table7-removebg-preview.png",
+  "/samples/diya.png",
   "/samples/fruits_basket-removebg-preview.png",
   "/samples/candle-6262984_1280-removebg-preview.png",
 ]
@@ -640,17 +641,20 @@ export default function WallEditor() {
                 <DialogHeader>
                   <DialogTitle>Select a Decor</DialogTitle>
                 </DialogHeader>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-2">
-                  {sampleImages.map((src, idx) => (
-                    <div
-                      key={src}
-                      className="cursor-pointer border-2 rounded-lg overflow-hidden hover:border-primary transition-all"
-                      onClick={() => handleAddSampleImage(src)}
-                      title="Add to wall"
-                    >
-                      <img src={src} alt={`Decor ${idx + 1}`} className="w-full h-32 object-contain bg-white" />
-                    </div>
-                  ))}
+                {/* Make the grid scrollable with a fixed max height */}
+                <div className="max-h-80 overflow-y-auto">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-2">
+                    {sampleImages.map((src, idx) => (
+                      <div
+                        key={src}
+                        className="cursor-pointer border-2 rounded-lg overflow-hidden hover:border-primary transition-all"
+                        onClick={() => handleAddSampleImage(src)}
+                        title="Add to wall"
+                      >
+                        <img src={src} alt={`Decor ${idx + 1}`} className="w-full h-32 object-contain bg-white" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <DialogClose asChild>
                   <Button variant="outline" className="w-full mt-4">Close</Button>
