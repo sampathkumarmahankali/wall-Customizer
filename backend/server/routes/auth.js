@@ -168,4 +168,18 @@ router.post('/verify-password', async (req, res) => {
   }
 });
 
+router.get('/userid-by-email/:email', async (req, res) => {
+  const { email } = req.params;
+  console.log("DEBUG: Email param received:", email);
+  try {
+    const [users] = await pool.query('SELECT id FROM users WHERE LOWER(email) = LOWER(?)', [email.trim()]);
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ userId: users[0].id });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
 module.exports = router; 

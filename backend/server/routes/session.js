@@ -1,0 +1,95 @@
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
+
+// Create or update a session
+router.post('/sessions', async (req, res) => {
+  try {
+    let { userId, email, name, data, sessionId } = req.body;
+
+    // If userId is missing, try to fetch it using email
+    if ((!userId || userId === "null" || userId === "undefined") && email) {
+      const [users] = await pool.query('SELECT id FROM users WHERE LOWER(email) = LOWER(?)', [email.trim()]);
+      if (users.length === 0) {
+        return res.status(400).json({ error: 'User not found for provided email' });
+      }
+      userId = users[0].id;
+    }
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId and email' });
+    }
+    if (!data) {
+      return res.status(400).json({ error: 'Missing session data' });
+    }
+
+    let sessionName = name && name.trim() ? name : null;
+    let jsonString = JSON.stringify(data);
+
+    if (sessionId) {
+      // Update existing session
+      const [rows] = await pool.query('SELECT * FROM edit_sessions WHERE id = ?', [sessionId]);
+      if (!sessionName) sessionName = `session ${sessionId}`;
+      if (rows.length === 0) return res.status(404).json({ error: 'Session not found' });
+      await pool.query('UPDATE edit_sessions SET name = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [sessionName, jsonString, sessionId]);
+      return res.json({ message: 'Session updated', sessionId });
+    } else {
+      // Create new session
+      const [result] = await pool.query('INSERT INTO edit_sessions (user_id, name, data) VALUES (?, ?, ?)', [userId, sessionName || 'session 1', jsonString]);
+      const newId = result.insertId;
+      if (!sessionName) {
+        await pool.query('UPDATE edit_sessions SET name = ? WHERE id = ?', [`session ${newId}`, newId]);
+      }
+      return res.json({ message: 'Session created', sessionId: newId });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
+// Get all sessions for a user
+router.get('/sessions/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const [rows] = await pool.query('SELECT id, name, updated_at FROM edit_sessions WHERE user_id = ? ORDER BY updated_at DESC', [userId]);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
+// Get a specific session by ID
+router.get('/session/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const [rows] = await pool.query('SELECT id, name, data, updated_at FROM edit_sessions WHERE id = ?', [sessionId]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Session not found' });
+    const session = rows[0];
+    let data = null;
+    try {
+      data = JSON.parse(session.data.toString('utf-8'));
+    } catch (e) {
+      data = null;
+    }
+    res.json({ id: session.id, name: session.name, data, updated_at: session.updated_at });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
+// Delete a session
+router.delete('/session/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    await pool.query('DELETE FROM edit_sessions WHERE id = ?', [sessionId]);
+    res.json({ message: 'Session deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
+module.exports = router; 

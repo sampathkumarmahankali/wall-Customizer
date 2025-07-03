@@ -6,108 +6,52 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { User } from "lucide-react";
+import ProfileForm from "@/components/auth/ProfileForm";
+import SessionList from '../../components/profile/SessionList';
 
 const API_URL = "http://localhost:4000/api";
 
 export default function ProfilePage() {
-  const [email, setEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
   const router = useRouter();
-
-  useEffect(() => {
-    // Get current user from localStorage
+  // Get user email for avatar fallback
+  let email = "";
     if (typeof window !== "undefined") {
-      const userEmail = localStorage.getItem("userEmail") || "";
-      setEmail(userEmail);
-    }
-  }, []);
-
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
-    try {
-      // First, verify current password
-      const verifyRes = await fetch(`${API_URL}/verify-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password: currentPassword })
-      });
-      const verifyData = await verifyRes.json();
-      if (!verifyRes.ok || !verifyData.valid) {
-        setError("Current password is incorrect.");
-        setLoading(false);
-        return;
-      }
-      // If valid, update password
-      const res = await fetch(`${API_URL}/update-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, newPassword })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Failed to update password.");
-        setLoading(false);
-        return;
-      }
-      setSuccess("Password updated successfully!");
-      setNewPassword("");
-      setCurrentPassword("");
-    } catch (err) {
-      setError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    email = localStorage.getItem("userEmail") || "";
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200">
-      <Card className="w-full max-w-md shadow-lg">
-        <div className="flex justify-end p-4">
-          <Button variant="outline" onClick={() => router.back()}>Back</Button>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200 p-4">
+      <div className="w-full max-w-4xl">
+        <div className="mb-4 flex items-center justify-end">
+          <Button variant="outline" onClick={() => router.back()}>
+            Back
+          </Button>
         </div>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">User Profile</CardTitle>
-          <CardDescription className="text-center">Manage your account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-6">
-            <Label className="block mb-1">Email</Label>
-            <Input value={email} disabled className="mb-2" />
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Sessions Card - Left */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 flex-1 min-w-0">
+            <div className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <User className="h-5 w-5 text-blue-500" />
+              Your Edit Sessions
+            </div>
+            <SessionList />
           </div>
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            <div>
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={currentPassword}
-                onChange={e => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
-              />
+          {/* Profile Card - Right */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center flex-1 min-w-0">
+            <Avatar className="h-20 w-20 mb-4">
+              {/* You can add AvatarImage here if you have user image */}
+              <AvatarFallback className="text-3xl">
+                {email ? email[0].toUpperCase() : <User className="h-8 w-8" />}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-xl font-bold mb-1">User Profile</div>
+            <div className="text-gray-500 mb-4">Manage your account</div>
+            <ProfileForm />
+          </div>
             </div>
-            <div>
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
-              />
             </div>
-            {error && <div className="text-red-600 text-sm text-center">{error}</div>}
-            {success && <div className="text-green-600 text-sm text-center">{success}</div>}
-            <Button type="submit" className="w-full" disabled={loading}>{loading ? "Updating..." : "Update Password"}</Button>
-          </form>
-        </CardContent>
-      </Card>
     </div>
   );
 } 
