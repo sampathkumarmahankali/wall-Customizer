@@ -70,7 +70,7 @@ export default function ProfilePage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200">
       <Card className="w-full max-w-md shadow-lg">
         <div className="flex justify-end p-4">
-          <Button variant="outline" onClick={() => router.replace("/")}>Back to Wall</Button>
+          <Button variant="outline" onClick={() => router.back()}>Back</Button>
         </div>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">User Profile</CardTitle>

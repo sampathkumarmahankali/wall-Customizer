@@ -33,7 +33,7 @@ export default function LoginPage() {
         return
       }
       localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("userEmail", data.email)
+      localStorage.setItem("userEmail", data.user.email)
       router.replace("/")
     } catch (err) {
       setError("Network error. Please try again.")
