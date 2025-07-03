@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const { pool } = require('../db');
+const pool = require('../db');
 
 const router = express.Router();
 
@@ -54,10 +54,12 @@ router.post('/login', async (req, res) => {
     }
 
     // Find user
-    const [users] = await pool.execute(
+    const result = await pool.execute(
       'SELECT * FROM users WHERE email = ?',
       [email]
     );
+    console.log('DB result:', result);
+    const [users] = result;
 
     if (users.length === 0) {
       return res.status(401).json({ message: 'Invalid email or password' });
