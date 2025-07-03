@@ -1,4 +1,4 @@
-// File: C:\Users\hp\OneDrive\Desktop\wall-Customizer\frontend\app\register\page.tsx
+// File: C:\Users\hp\OneDrive\Desktop\wall-Customizer-1\frontend\app\register\page.tsx
 import * as entry from '../../../../app/register/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

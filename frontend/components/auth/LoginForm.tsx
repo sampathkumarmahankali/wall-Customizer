@@ -34,10 +34,18 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       });
 
       const data = await response.json();
+      console.log("DEBUG: Login API response:", data);
 
       if (response.ok) {
-        localStorage.setItem("isLoggedIn", "true");
+        if (data.user && data.user.email) {
+          localStorage.setItem("userEmail", data.user.email);
+        } else {
         localStorage.setItem("userEmail", email);
+        }
+        if (data.user && data.user.id) {
+          localStorage.setItem("userId", data.user.id.toString());
+        }
+        console.log("DEBUG: Set userId and userEmail in localStorage:", localStorage.getItem("userId"), localStorage.getItem("userEmail"));
         if (onSuccess) {
           onSuccess();
         } else {
