@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ImageIcon, Palette, Plus, Trash2 } from "lucide-react";
+import { ImageIcon, Palette, Plus, Trash2, Home, User } from "lucide-react";
 
 // Preset wall backgrounds
 const backgroundOptions = [
@@ -16,6 +16,14 @@ const backgroundOptions = [
   { name: "Vintage Brick Wall", value: "/walls/vintage-brick-wall.jpg", backgroundSize: "cover" },
 ];
 
+interface CustomBackground {
+  name: string;
+  value: string;
+  isCustom: boolean;
+  file: File;
+  backgroundSize: string;
+}
+
 interface WallCreatorProps {
   onSubmit: (settings: any) => void;
 }
@@ -24,12 +32,12 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
   const [wallSize, setWallSize] = useState({ width: 600, height: 400 });
   const [wallColor, setWallColor] = useState("#ffffff");
   const [wallBackground, setWallBackground] = useState(backgroundOptions[0]);
-  const [customBackgrounds, setCustomBackgrounds] = useState([]);
-  const backgroundInputRef = useRef(null);
+  const [customBackgrounds, setCustomBackgrounds] = useState<CustomBackground[]>([]);
+  const backgroundInputRef = useRef<HTMLInputElement>(null);
 
-  const handleBackgroundUpload = (e) => {
+  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const customBgs = files.map((file) => ({
+    const customBgs: CustomBackground[] = files.map((file) => ({
       name: file.name.split(".")[0],
       value: URL.createObjectURL(file),
       isCustom: true,
@@ -39,7 +47,7 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
     setCustomBackgrounds((prev) => [...prev, ...customBgs]);
   };
 
-  const removeCustomBackground = (bgToRemove) => {
+  const removeCustomBackground = (bgToRemove: CustomBackground) => {
     setCustomBackgrounds((prev) => prev.filter((bg) => bg.value !== bgToRemove.value));
     if (wallBackground.value === bgToRemove.value) {
       setWallBackground(backgroundOptions[0]);
@@ -47,9 +55,9 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
     URL.revokeObjectURL(bgToRemove.value);
   };
 
-  const allBackgrounds = [...backgroundOptions, ...customBackgrounds];
+  const allBackgrounds: (typeof backgroundOptions[0] | CustomBackground)[] = [...backgroundOptions, ...customBackgrounds];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit({
       wallSize,
@@ -60,9 +68,31 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-      <div className="max-w-4xl mx-auto w-full">
-        <Card>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200 shadow-sm">
+        <div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.location.href = '/'}>
+            <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg group-hover:from-indigo-600 group-hover:to-purple-700 transition-all duration-200 shadow-lg group-hover:shadow-xl">
+              <Home className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:to-purple-700 transition-all duration-200">
+              Wallora
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium shadow-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
+              onClick={() => window.location.href = '/profile'}
+            >
+              <User className="h-5 w-5 text-indigo-600" />
+              <span className="hidden sm:inline">Profile</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-4xl mx-auto w-full p-6">
+        <Card className="shadow-xl bg-white/90 backdrop-blur rounded-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
               Wallora
@@ -102,7 +132,7 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => backgroundInputRef.current?.click()}
+                    onClick={() => backgroundInputRef.current && backgroundInputRef.current.click()}
                     className="text-xs"
                   >
                     <ImageIcon className="mr-1 h-3 w-3" />
@@ -135,7 +165,7 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
                       title={bg.name}
                     >
                       <div className="absolute inset-0" onClick={() => setWallBackground(bg)} />
-                      {bg.isCustom && (
+                      {('isCustom' in bg && bg.isCustom) && (
                         <Button
                           type="button"
                           variant="destructive"
@@ -143,7 +173,7 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
                           className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation();
-                            removeCustomBackground(bg);
+                            removeCustomBackground(bg as CustomBackground);
                           }}
                         >
                           <Trash2 className="h-3 w-3" />
@@ -151,7 +181,7 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
                       )}
                       <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-1 opacity-0 hover:opacity-100 transition-opacity">
                         {bg.name}
-                        {bg.isCustom && " (Custom)"}
+                        {('isCustom' in bg && bg.isCustom) && " (Custom)"}
                       </div>
                     </div>
                   ))}
@@ -174,8 +204,8 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
                   </div>
                 )}
               </div>
-              <Button type="submit" className="w-full" size="lg">
-                <Plus className="mr-2 h-4 w-4" />
+              <Button type="submit" className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full shadow-lg text-lg py-3" size="lg">
+                <Plus className="mr-2 h-5 w-5" />
                 Create Your Wall
               </Button>
             </form>
