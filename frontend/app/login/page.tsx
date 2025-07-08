@@ -111,7 +111,7 @@ export default function LoginPage() {
         </div>
         {/* Bottom Row: How to Use Wallora Card with Real Preview Image */}
         <div className="w-full max-w-2xl flex flex-col items-center">
-          <Card className="w-full shadow-xl rounded-2xl flex flex-col items-center p-6 bg-white/80">
+          <Card className="w-full shadow-xl rounded-2xl flex flex-col items-center p-6 bg-gradient-to-br from-indigo-200 via-purple-100 to-blue-100 border-0">
             <img
               src="/uploads/mona-lisa.jpg"
               alt="Wallora wall design preview"
