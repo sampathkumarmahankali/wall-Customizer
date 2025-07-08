@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import Footer from "@/components/shared/Footer"
 
 const API_URL = "http://localhost:4000/api"
 
@@ -46,46 +47,49 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">Register</CardTitle>
-          <CardDescription className="text-center">Create a new account to use Wallora</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                autoFocus
-                placeholder="Enter your email"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                placeholder="Enter your password"
-              />
-            </div>
-            {error && <div className="text-red-600 text-sm text-center">{error}</div>}
-            {success && <div className="text-green-600 text-sm text-center">{success}</div>}
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>{loading ? "Registering..." : "Register"}</Button>
-            <div className="text-xs text-gray-500 text-center mt-2">
-              Already have an account? <a href="/login" className="text-blue-600 underline">Login</a>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-100 to-purple-200">
+      <div className="flex-1 flex items-center justify-center">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">Register</CardTitle>
+            <CardDescription className="text-center">Create a new account to use Wallora</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  autoFocus
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  placeholder="Enter your password"
+                />
+              </div>
+              {error && <div className="text-red-600 text-sm text-center">{error}</div>}
+              {success && <div className="text-green-600 text-sm text-center">{success}</div>}
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>{loading ? "Registering..." : "Register"}</Button>
+              <div className="text-xs text-gray-500 text-center mt-2">
+                Already have an account? <a href="/login" className="text-blue-600 underline">Login</a>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+      <Footer />
     </div>
   )
 } 
