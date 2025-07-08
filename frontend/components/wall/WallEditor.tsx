@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Settings, Plus, ImageIcon, Trash2, Download, Edit, Palette, Save, Home, User } from "lucide-react";
+import { Upload, Settings, Plus, ImageIcon, Trash2, Download, Edit, Palette, Save, Home, User, ClipboardCheck, ClipboardCopy } from "lucide-react";
 import Wall from "@/components/wall";
 import ImageBlock from "@/components/image-block";
 import WallSettings from "@/components/wall-settings";
@@ -58,6 +58,8 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
   const sessionId = searchParams.get("sessionId");
   const userId = localStorage.getItem("userId");
   const router = useRouter();
+  const [shareStatus, setShareStatus] = useState("");
+  const [shareLink, setShareLink] = useState("");
 
   // Helper to get current timestamp
   const getTimestamp = () => new Date().toISOString();
@@ -317,6 +319,30 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
     setTimeout(() => setSaveStatus(""), 1500);
   };
 
+  // Share session
+  const handleShare = () => {
+    if (!sessionId) {
+      setShareStatus("Please save your wall first!");
+      setShareLink("");
+      setTimeout(() => setShareStatus(""), 2000);
+      return;
+    }
+    const url = window.location.origin + window.location.pathname + `?sessionId=${sessionId}`;
+    setShareLink(url);
+    setShareStatus("");
+  };
+
+  const handleCopyLink = () => {
+    if (shareLink) {
+      navigator.clipboard.writeText(shareLink);
+      setShareStatus("Link copied!");
+      setTimeout(() => {
+        setShareStatus("");
+        setShareLink("");
+      }, 2000);
+    }
+  };
+
   // --- Render ---
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -525,7 +551,8 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
           </Dialog>
         )}
 
-        <div className="flex flex-col items-center mt-8">
+        {/* Save Session card and Share button side by side */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-8">
           <Card className="w-full max-w-lg p-6 flex flex-col items-center shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
             <div className="w-full mb-4 flex flex-col sm:flex-row items-center sm:items-end gap-4">
               <div className="flex-1 w-full">
@@ -543,16 +570,49 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
                 />
               </div>
               <div className="hidden sm:block h-10 w-px bg-gray-200 mx-2" />
-              <Button
-                onClick={handleSaveSession}
-                className="w-full sm:w-auto rounded-full px-6 h-12 font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-md transition flex items-center justify-center"
-                variant="default"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Save Session
-              </Button>
+              <div className="flex flex-row gap-2 w-full sm:w-auto">
+                <Button
+                  onClick={handleSaveSession}
+                  className="w-full sm:w-auto rounded-full px-6 h-12 font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-md transition flex items-center justify-center"
+                  variant="default"
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Session
+                </Button>
+              </div>
             </div>
             {saveStatus && <div className="mt-2 text-green-600 text-sm font-medium">{saveStatus}</div>}
+          </Card>
+          {/* Share button as a separate card */}
+          <Card className="w-full max-w-xs p-6 flex flex-col items-center shadow-lg bg-gradient-to-r from-indigo-50 to-purple-50">
+            <Button
+              onClick={handleShare}
+              variant="default"
+              className="rounded-full px-6 h-12 font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-md transition flex items-center justify-center"
+            >
+              <ClipboardCheck className="mr-2 h-4 w-4" />
+              Share
+            </Button>
+            {shareLink && (
+              <div className="flex items-center mt-4 w-full">
+                <input
+                  type="text"
+                  value={shareLink}
+                  readOnly
+                  className="flex-1 px-2 py-1 border border-gray-300 rounded-l bg-gray-50 text-xs text-gray-700"
+                  style={{ minWidth: 0 }}
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-r border-l border-gray-300 flex items-center"
+                  title="Copy link"
+                  type="button"
+                >
+                  <ClipboardCopy className="h-4 w-4 text-gray-700" />
+                </button>
+              </div>
+            )}
+            {shareStatus && <div className="mt-2 text-green-600 text-sm font-medium">{shareStatus}</div>}
           </Card>
         </div>
       </div>
