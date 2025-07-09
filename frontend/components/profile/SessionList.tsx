@@ -51,7 +51,6 @@ const deleteSession = async (sessionId: string): Promise<boolean> => {
     });
     return res.ok;
   } catch (error) {
-    console.error('Error deleting session:', error);
     return false;
   }
 };
@@ -65,7 +64,6 @@ const SessionList: React.FC = () => {
 
   useEffect(() => {
     const email = localStorage.getItem('userEmail');
-    console.log("DEBUG: userEmail from localStorage:", email);
     if (!email) {
       setSessions([]);
       setLoading(false);
@@ -73,7 +71,6 @@ const SessionList: React.FC = () => {
       return;
     }
     fetchUserIdByEmail(email).then((userId) => {
-      console.log("DEBUG: userId fetched from backend:", userId);
       if (!userId) {
         setSessions([]);
         setLoading(false);
@@ -124,9 +121,6 @@ const SessionList: React.FC = () => {
     if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
     return date.toLocaleDateString();
   };
-
-  // Debug log to verify sessions before rendering
-  console.log("DEBUG: sessions to render:", sessions);
 
   if (loading) {
     return (

@@ -34,7 +34,6 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       });
 
       const data = await response.json();
-      console.log("DEBUG: Login API response:", data);
 
       if (response.ok) {
         if (data.user && data.user.email) {
@@ -45,7 +44,6 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         if (data.user && data.user.id) {
           localStorage.setItem("userId", data.user.id.toString());
         }
-        console.log("DEBUG: Set userId and userEmail in localStorage:", localStorage.getItem("userId"), localStorage.getItem("userEmail"));
         if (onSuccess) {
           onSuccess();
         } else {
