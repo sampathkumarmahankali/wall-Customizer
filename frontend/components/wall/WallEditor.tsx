@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Settings, Plus, ImageIcon, Trash2, Download, Edit, Palette, Save, Home, User, ClipboardCheck, ClipboardCopy } from "lucide-react";
+import { Upload, Settings, Plus, ImageIcon, Trash2, Download, Edit, Palette, Save, Home, User, ClipboardCheck, ClipboardCopy, Sparkles } from "lucide-react";
 import Wall from "@/components/wall";
 import ImageBlock from "@/components/image-block";
 import WallSettings from "@/components/wall-settings";
@@ -10,6 +10,7 @@ import ExportDialog from "@/components/export-dialog";
 import ImageEditor from "@/components/image-editor";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { useSearchParams, useRouter } from "next/navigation";
+import Tools from "@/components/ai/AITools";
 
 // Sample images filenames (from public/samples)
 const sampleImages = [
@@ -52,6 +53,8 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const wallRef = useRef(null);
   const [showSampleDialog, setShowSampleDialog] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<any>(null);
+  const [showTools, setShowTools] = useState(false);
   const [sessionName, setSessionName] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const searchParams = useSearchParams();
@@ -70,7 +73,6 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
         .then(res => res.json())
         .then(session => {
           if (session.data) {
-            console.log("DEBUG: Restoring session data:", session.data);
             setWallSize(session.data.wallSize);
             setWallColor(session.data.wallColor);
             setWallBackground(session.data.background);
@@ -172,12 +174,21 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
   // Start editing an image
   const handleEditImage = (imageId: number) => {
     setEditingImageId(imageId);
+    const image = images.find(img => img.id === imageId);
+    setSelectedImage(image);
   };
 
   // Complete image editing and update image
   const handleImageEditComplete = (editedImage: any) => {
     updateImage(editedImage.id, editedImage);
     setEditingImageId(null);
+    setSelectedImage(null);
+  };
+
+  // Handle AI image update
+  const handleAIUpdate = (updatedImage: any) => {
+    updateImage(updatedImage.id, updatedImage);
+    setSelectedImage(updatedImage);
   };
 
   // Delete an image from the wall
@@ -405,6 +416,14 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
                   {showImageEditor ? "Hide" : "Edit"} Images
                 </Button>
                 <Button
+                  onClick={() => setShowTools(!showTools)}
+                  variant="default"
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 rounded-full shadow-md px-5"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Tools
+                </Button>
+                <Button
                   onClick={() => setShowExportDialog(true)}
                   variant="default"
                   className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 rounded-full shadow-md px-5"
@@ -437,7 +456,7 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Main Wall Area */}
-          <div className={`${showImageEditor ? "lg:col-span-3" : "lg:col-span-4"}`}>
+          <div className={`${showImageEditor || showTools ? "lg:col-span-3" : "lg:col-span-4"}`}>
             <Card className="shadow-lg rounded-2xl bg-white/95">
               <CardContent className="p-0">
                 <div
@@ -483,6 +502,17 @@ export default function WallEditor({ initialSettings }: WallEditorProps) {
                 onUpdateImage={updateImage}
                 onCreateCollage={createCollage}
                 onDeleteImage={deleteImage}
+              />
+            </div>
+          )}
+
+          {/* AI Tools Sidebar */}
+          {showTools && (
+            <div className="lg:col-span-1 space-y-4">
+              <Tools
+                selectedImage={selectedImage}
+                onImageUpdate={handleAIUpdate}
+                images={images}
               />
             </div>
           )}

@@ -72,7 +72,7 @@ export default function WallSettings({
       <CardContent>
         <Tabs defaultValue="size" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="size">Size & Layout</TabsTrigger>
+            <TabsTrigger value="size">Size</TabsTrigger>
             <TabsTrigger value="background">Background</TabsTrigger>
             <TabsTrigger value="borders">Borders</TabsTrigger>
           </TabsList>

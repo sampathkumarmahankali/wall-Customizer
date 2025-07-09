@@ -39,17 +39,9 @@ export default function ExportDialog({
     setIsExporting(true)
 
     try {
-      console.log("Starting enhanced DOM-based export with frame detection...")
-
       // Get the wall container
       const wallContainer = wallRef.current
       const wallRect = wallContainer.getBoundingClientRect()
-
-      console.log("Wall container dimensions:", {
-        width: wallRect.width,
-        height: wallRect.height,
-        actualWallSize: wallSize,
-      })
 
       // Create canvas with exact wall dimensions
       const canvas = document.createElement("canvas")
@@ -65,18 +57,15 @@ export default function ExportDialog({
       ctx.clearRect(0, 0, wallSize.width, wallSize.height)
 
       // Draw background first
-      console.log("Drawing background...")
       await drawWallBackground(ctx, wallSize.width, wallSize.height)
 
       // Draw wall border if exists
       if (wallBorder && wallBorder.width > 0) {
-        console.log("Drawing wall border...")
         drawWallBorder(ctx, wallSize.width, wallSize.height)
       }
 
       // Find all Rnd containers (these contain the frames and images)
       const rndContainers = wallContainer.querySelectorAll(".react-draggable")
-      console.log(`Found ${rndContainers.length} draggable containers to export`)
 
       for (let i = 0; i < rndContainers.length; i++) {
         const container = rndContainers[i] as HTMLElement
@@ -92,27 +81,16 @@ export default function ExportDialog({
           const containerWidth = containerRect.width
           const containerHeight = containerRect.height
 
-          console.log(`Container ${i + 1} position:`, {
-            x: relativeX,
-            y: relativeY,
-            width: containerWidth,
-            height: containerHeight,
-          })
-
           // Find the image data for this container
           const imageId = container.getAttribute("data-image-id")
           const imageData = images.find((img) => img.id.toString() === imageId)
 
           if (!imageData) {
-            console.warn(`No image data found for container ${i + 1}`)
             continue
           }
 
-          console.log(`Processing image ${i + 1}:`, imageData)
-
           // Handle collage images
           if (imageData.isCollage && imageData.collageImages) {
-            console.log(`Drawing collage with ${imageData.collageImages.length} images`)
             await drawCollageOnCanvas(
               ctx,
               relativeX,
@@ -126,7 +104,6 @@ export default function ExportDialog({
             // Handle single image
             const imgElement = container.querySelector("img") as HTMLImageElement
             if (!imgElement) {
-              console.warn(`No img element found in container ${i + 1}`)
               continue
             }
 
@@ -144,7 +121,6 @@ export default function ExportDialog({
             if (imageData.filters) {
               const filterString = `brightness(${imageData.filters.brightness}%) contrast(${imageData.filters.contrast}%) saturate(${imageData.filters.saturation}%) hue-rotate(${imageData.filters.hue}deg) blur(${imageData.filters.blur}px)`
               ctx.filter = filterString
-              console.log(`Applied filters to image ${i + 1}: ${filterString}`)
             }
 
             // Apply shape clipping
@@ -167,17 +143,13 @@ export default function ExportDialog({
 
           // Draw frame - this is the key fix!
           if (imageData.frame && imageData.frame.type !== "none" && imageData.frame.width > 0) {
-            console.log(`Drawing frame for image ${i + 1}:`, imageData.frame)
             drawImageFrame(ctx, relativeX, relativeY, containerWidth, containerHeight, imageData.frame)
           }
 
-          console.log(`Successfully processed container ${i + 1}`)
         } catch (error) {
-          console.error(`Failed to process container ${i + 1}:`, error)
+          // console.error(`Failed to process container ${i + 1}:`, error)
         }
       }
-
-      console.log("Canvas rendering complete, starting export...")
 
       // Export based on format
       if (format === "pdf") {
@@ -196,9 +168,8 @@ export default function ExportDialog({
 
           pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
           pdf.save(`${fileName}.pdf`)
-          console.log("PDF export successful")
         } catch (error) {
-          console.error("PDF export failed:", error)
+          // console.error("PDF export failed:", error)
           // Fallback to PNG
           downloadCanvas(canvas, `${fileName}.png`, "image/png")
         }
@@ -207,7 +178,7 @@ export default function ExportDialog({
         downloadCanvas(canvas, `${fileName}.${format}`, `image/${format}`, format === "png" ? 1.0 : quality)
       }
     } catch (error) {
-      console.error("Export failed:", error)
+      // console.error("Export failed:", error)
       if (error && typeof error === "object" && "message" in error) {
         alert(`Export failed: ${(error as { message: string }).message}`)
       } else {
@@ -247,7 +218,7 @@ export default function ExportDialog({
 
         ctx.drawImage(img, x, y, scaledWidth, scaledHeight)
       } catch (error) {
-        console.error("Failed to load background image:", error)
+        // console.error("Failed to load background image:", error)
         ctx.fillStyle = "#f5f5f5"
         ctx.fillRect(0, 0, width, height)
       }
@@ -384,8 +355,6 @@ export default function ExportDialog({
     ctx.lineWidth = frameWidth
     ctx.setLineDash([]) // Reset line dash
 
-    console.log(`Drawing frame: type=${frame.type}, width=${frameWidth}, color=${color}`)
-
     switch (frame.type) {
       case "classic":
         // Simple solid frame
@@ -452,8 +421,6 @@ export default function ExportDialog({
     const cellWidth = width / cols
     const cellHeight = height / rows
 
-    console.log(`Drawing collage: ${collageImages.length} images in ${cols}x${rows} grid`)
-
     for (let i = 0; i < collageImages.length; i++) {
       const col = i % cols
       const row = Math.floor(i / cols)
@@ -478,9 +445,8 @@ export default function ExportDialog({
         ctx.drawImage(img, cellX, cellY, cellWidth, cellHeight)
         ctx.filter = "none" // Reset filter
 
-        console.log(`Drew collage image ${i + 1} at position (${cellX}, ${cellY})`)
       } catch (error) {
-        console.error(`Failed to load collage image ${i}:`, error)
+        // console.error(`Failed to load collage image ${i}:`, error)
       }
     }
   }
@@ -495,7 +461,6 @@ export default function ExportDialog({
           link.download = filename
           link.click()
           URL.revokeObjectURL(url)
-          console.log(`${mimeType} export successful`)
         }
       },
       mimeType,
