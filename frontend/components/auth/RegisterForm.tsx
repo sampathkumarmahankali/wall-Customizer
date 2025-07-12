@@ -45,8 +45,22 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
       const data = await response.json();
 
       if (response.ok) {
+        // Store JWT token
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+        
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userEmail", email);
+        
+        if (data.user && data.user.id) {
+          localStorage.setItem("userId", data.user.id.toString());
+        }
+        
+        if (data.user && data.user.name) {
+          localStorage.setItem("userName", data.user.name);
+        }
+        
         if (onSuccess) {
           onSuccess();
         } else {

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import Footer from "@/components/shared/Footer"
+import { setToken } from "@/lib/auth";
 
 const API_URL = "http://localhost:4000/api"
 
@@ -32,6 +33,9 @@ export default function LoginPage() {
         setError(data.error || "Login failed.")
         setLoading(false)
         return
+      }
+      if (data.token) {
+        setToken(data.token);
       }
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("userEmail", data.user.email)

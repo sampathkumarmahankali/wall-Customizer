@@ -21,41 +21,24 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
     try {
-      const response = await fetch("http://localhost:3001/api/auth/login", {
+      const response = await fetch("http://localhost:4000/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await response.json();
+      console.log("Login response:", data);
 
-      if (response.ok) {
-        if (data.user && data.user.email) {
-          localStorage.setItem("userEmail", data.user.email);
-        } else {
-        localStorage.setItem("userEmail", email);
-        }
-        if (data.user && data.user.id) {
-          localStorage.setItem("userId", data.user.id.toString());
-        }
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          router.push("/");
-        }
+      // Save token unconditionally for testing
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        alert("Token saved to localStorage!");
       } else {
-        setError(data.message || "Login failed");
+        alert("No token in response!");
       }
     } catch (err) {
-      setError("Network error. Please try again.");
-    } finally {
-      setIsLoading(false);
+      alert("Login failed!");
     }
   };
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const pool = require('../db');
+const { generateToken, authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -24,8 +25,9 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Hash password (using plain text as per user request)
-    const hashedPassword = password; // Changed from bcrypt.hashSync(password, 10)
+    // Hash password using bcrypt
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Insert new user
     const [result] = await pool.execute(
@@ -33,9 +35,22 @@ router.post('/register', async (req, res) => {
       [name, email, hashedPassword]
     );
 
+    // Generate JWT token
+    const token = generateToken({
+      id: result.insertId,
+      email: email,
+      name: name
+    });
+
     res.status(201).json({
       message: 'User registered successfully',
-      userId: result.insertId
+      userId: result.insertId,
+      token: token,
+      user: {
+        id: result.insertId,
+        name: name,
+        email: email
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -58,7 +73,6 @@ router.post('/login', async (req, res) => {
       'SELECT * FROM users WHERE email = ?',
       [email]
     );
-    console.log('DB result:', result);
     const [users] = result;
 
     if (users.length === 0) {
@@ -67,15 +81,23 @@ router.post('/login', async (req, res) => {
 
     const user = users[0];
 
-    // Verify password (using plain text comparison as per user request)
-    const isValidPassword = password === user.password; // Changed from bcrypt.compareSync(password, user.password)
+    // Verify password using bcrypt
+    const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // Generate JWT token
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      name: user.name
+    });
+
     res.json({
       message: 'Login successful',
+      token: token,
       user: {
         id: user.id,
         name: user.name,
@@ -110,15 +132,16 @@ router.post('/update-password', async (req, res) => {
 
     const user = users[0];
 
-    // Verify current password
-    const isValidCurrentPassword = currentPassword === user.password; // Changed from bcrypt.compareSync(currentPassword, user.password)
+    // Verify current password using bcrypt
+    const isValidCurrentPassword = await bcrypt.compare(currentPassword, user.password);
 
     if (!isValidCurrentPassword) {
       return res.status(401).json({ message: 'Current password is incorrect' });
     }
 
-    // Hash new password (using plain text as per user request)
-    const hashedNewPassword = newPassword; // Changed from bcrypt.hashSync(newPassword, 10)
+    // Hash new password using bcrypt
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
     // Update password
     await pool.execute(
@@ -155,8 +178,8 @@ router.post('/verify-password', async (req, res) => {
 
     const user = users[0];
 
-    // Verify password
-    const isValidPassword = password === user.password; // Changed from bcrypt.compareSync(password, user.password)
+    // Verify password using bcrypt
+    const isValidPassword = await bcrypt.compare(password, user.password);
 
     res.json({
       isValid: isValidPassword,
@@ -168,9 +191,37 @@ router.post('/verify-password', async (req, res) => {
   }
 });
 
+// Protected route to get user profile
+router.get('/profile', authenticateToken, async (req, res) => {
+  try {
+    const [users] = await pool.execute(
+      'SELECT id, name, email FROM users WHERE id = ?',
+      [req.user.id]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      user: users[0]
+    });
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    res.status(500).json({ message: 'Failed to fetch profile' });
+  }
+});
+
+// Verify token endpoint
+router.get('/verify-token', authenticateToken, (req, res) => {
+  res.json({
+    message: 'Token is valid',
+    user: req.user
+  });
+});
+
 router.get('/userid-by-email/:email', async (req, res) => {
   const { email } = req.params;
-  console.log("DEBUG: Email param received:", email);
   try {
     const [users] = await pool.query('SELECT id FROM users WHERE LOWER(email) = LOWER(?)', [email.trim()]);
     if (users.length === 0) {
