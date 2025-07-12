@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import Footer from "@/components/shared/Footer"
+import { setToken } from "@/lib/auth";
 
 const API_URL = "http://localhost:4000/api"
 
 export default function RegisterPage() {
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -27,13 +29,16 @@ export default function RegisterPage() {
       const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ name, email, password })
       })
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || "Registration failed.")
         setLoading(false)
         return
+      }
+      if (data.token) {
+        setToken(data.token);
       }
       setSuccess("Registration successful! Redirecting...")
       localStorage.setItem("isLoggedIn", "true")
@@ -56,6 +61,17 @@ export default function RegisterPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                  placeholder="Enter your full name"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

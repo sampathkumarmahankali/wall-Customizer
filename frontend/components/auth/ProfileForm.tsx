@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Mail, Lock, User, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { authenticatedFetch, logout } from "@/lib/auth";
 
 interface ProfileFormProps {
   onSuccess?: () => void;
@@ -45,11 +46,8 @@ export default function ProfileForm({ onSuccess }: ProfileFormProps) {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/auth/update-password", {
+      const response = await authenticatedFetch("http://localhost:3001/api/auth/update-password", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ email, currentPassword, newPassword }),
       });
 
@@ -229,6 +227,21 @@ export default function ProfileForm({ onSuccess }: ProfileFormProps) {
             </form>
           </div>
         )}
+      </div>
+
+      {/* Logout Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-gray-700">
+          <Shield className="h-5 w-5 text-red-600" />
+          <h3 className="text-lg font-semibold">Account Actions</h3>
+        </div>
+        <Button 
+          onClick={logout}
+          variant="outline"
+          className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 transition-all duration-200"
+        >
+          Logout
+        </Button>
       </div>
     </div>
   );
