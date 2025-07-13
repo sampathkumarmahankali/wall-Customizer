@@ -1,5 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const path = require('path');
+const fs = require('fs');
 const pool = require('../db');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 
@@ -87,6 +89,12 @@ router.post('/login', async (req, res) => {
     if (!isValidPassword) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
+
+    // Update last_login timestamp
+    await pool.execute(
+      'UPDATE users SET last_login = NOW() WHERE id = ?',
+      [user.id]
+    );
 
     // Generate JWT token
     const token = generateToken({
@@ -195,7 +203,7 @@ router.post('/verify-password', async (req, res) => {
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const [users] = await pool.execute(
-      'SELECT id, name, email FROM users WHERE id = ?',
+      'SELECT id, name, email, profile_photo, role, subscription_status, is_active FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -230,6 +238,62 @@ router.get('/userid-by-email/:email', async (req, res) => {
     res.json({ userId: users[0].id });
   } catch (err) {
     res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
+
+// Upload profile photo endpoint (base64)
+router.post('/upload-profile-photo', authenticateToken, async (req, res) => {
+  try {
+    const { imageData, fileName, fileType } = req.body;
+    const userId = req.user.id;
+
+    if (!imageData) {
+      return res.status(400).json({ message: 'No image data provided' });
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(fileType)) {
+      return res.status(400).json({ message: 'Invalid file type' });
+    }
+
+    // Create data URL with proper MIME type
+    const dataUrl = `data:${fileType};base64,${imageData}`;
+
+    // Update user's profile photo in database with base64 data
+    await pool.execute(
+      'UPDATE users SET profile_photo = ? WHERE id = ?',
+      [dataUrl, userId]
+    );
+
+    res.json({
+      message: 'Profile photo uploaded successfully',
+      profilePhoto: dataUrl
+    });
+  } catch (error) {
+    console.error('Profile photo upload error:', error);
+    res.status(500).json({ message: 'Failed to upload profile photo' });
+  }
+});
+
+// Remove profile photo endpoint
+router.delete('/remove-profile-photo', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Update user's profile photo to null in database
+    await pool.execute(
+      'UPDATE users SET profile_photo = NULL WHERE id = ?',
+      [userId]
+    );
+
+    res.json({
+      message: 'Profile photo removed successfully',
+      profilePhoto: null
+    });
+  } catch (error) {
+    console.error('Profile photo removal error:', error);
+    res.status(500).json({ message: 'Failed to remove profile photo' });
   }
 });
 

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User, Settings, Clock, Palette, LogOut, Home, ChevronDown } from "lucide-react";
 import ProfileForm from "@/components/auth/ProfileForm";
+import ProfilePhotoUpload from "@/components/auth/ProfilePhotoUpload";
 import SessionList from '../../components/profile/SessionList';
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import Footer from "@/components/shared/Footer";
@@ -46,6 +47,7 @@ export default function ProfilePage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | undefined>(undefined);
   
   // Get user email for avatar fallback
   let email = "";
@@ -54,26 +56,45 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    const loadSessions = async () => {
+    const loadData = async () => {
       if (!email) {
         setLoading(false);
         return;
       }
       
       try {
+        // Fetch sessions
         const userId = await fetchUserIdByEmail(email);
         if (userId) {
           const sessionData = await fetchUserSessions(userId);
           setSessions(sessionData);
         }
+
+        // Fetch profile photo
+        const token = localStorage.getItem("token");
+        if (token) {
+          const profileResponse = await fetch(`${API_URL}/profile`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            if (profileData.user.profile_photo) {
+              setProfilePhoto(profileData.user.profile_photo);
+            }
+          }
+        }
       } catch (error) {
-        console.error("Error loading sessions:", error);
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadSessions();
+    loadData();
   }, [email]);
 
   // Calculate active projects (sessions updated in the last 1 day)
@@ -106,6 +127,11 @@ export default function ProfilePage() {
 
   const handleLogoClick = () => {
     router.push("/create");
+  };
+
+
+  const handlePhotoUpdate = (photoPath: string) => {
+    setProfilePhoto(photoPath);
   };
 
   return (
@@ -175,11 +201,11 @@ export default function ProfilePage() {
                 <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden">
                   <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
                     <div className="flex items-center justify-center mb-4">
-                      <Avatar className="h-24 w-24 border-4 border-white/20">
-                        <AvatarFallback className="text-2xl bg-white/20 text-white">
-                          {email ? email[0].toUpperCase() : <User className="h-12 w-12" />}
-                        </AvatarFallback>
-                      </Avatar>
+                      <ProfilePhotoUpload
+                        currentPhoto={profilePhoto}
+                        userEmail={email}
+                        onPhotoUpdate={handlePhotoUpdate}
+                      />
                     </div>
                     <div className="text-center">
                       <h2 className="text-2xl font-bold mb-1">Welcome Back!</h2>
