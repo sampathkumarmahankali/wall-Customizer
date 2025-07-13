@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth');
 const sessionRoutes = require('./routes/session');
 const aiRoutes = require('./routes/ai');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -19,6 +20,8 @@ app.use('/api', authRoutes);
 app.use('/api', sessionRoutes);
 // AI routes
 app.use('/api/ai', aiRoutes);
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
   res.send('Wallora Server Running');

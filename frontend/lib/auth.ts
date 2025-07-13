@@ -39,6 +39,13 @@ export const getAuthHeaders = (): HeadersInit => {
   };
 };
 
+export const getAuthHeadersForFormData = (): HeadersInit => {
+  const token = getToken();
+  return {
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  };
+};
+
 export const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const headers = getAuthHeaders();
   
