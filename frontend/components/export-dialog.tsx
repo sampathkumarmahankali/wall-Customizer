@@ -30,7 +30,7 @@ export default function ExportDialog({
   const [format, setFormat] = useState<"png" | "jpg" | "pdf">("pdf")
   const [quality, setQuality] = useState(0.9)
   const [scale, setScale] = useState(1)
-  const [fileName, setFileName] = useState("wallora-wall-aura")
+  const [fileName, setFileName] = useState("mialter-altar")
   const [isExporting, setIsExporting] = useState(false)
 
   const exportWall = async () => {
@@ -487,7 +487,7 @@ export default function ExportDialog({
               id="filename"
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
-              placeholder="wallora-wall-aura"
+              placeholder="mialter-altar"
               className="mt-1"
             />
           </div>

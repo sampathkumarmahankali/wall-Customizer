@@ -13,6 +13,7 @@ import ProfilePhotoUpload from "@/components/auth/ProfilePhotoUpload";
 import SessionList from '../../components/profile/SessionList';
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import Footer from "@/components/shared/Footer";
+import { authenticatedFetch } from "@/lib/auth";
 
 const API_URL = "http://localhost:4000/api";
 
@@ -48,6 +49,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | undefined>(undefined);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Get user email for avatar fallback
   let email = "";
@@ -70,7 +72,7 @@ export default function ProfilePage() {
           setSessions(sessionData);
         }
 
-        // Fetch profile photo
+        // Fetch profile photo and role
         const token = localStorage.getItem("token");
         if (token) {
           const profileResponse = await fetch(`${API_URL}/profile`, {
@@ -82,8 +84,13 @@ export default function ProfilePage() {
 
           if (profileResponse.ok) {
             const profileData = await profileResponse.json();
-            if (profileData.user.profile_photo) {
+            if (profileData.user && profileData.user.profile_photo) {
               setProfilePhoto(profileData.user.profile_photo);
+            }
+            if (profileData.user && profileData.user.role === "admin") {
+              setIsAdmin(true);
+            } else {
+              setIsAdmin(false);
             }
           }
         }
@@ -135,61 +142,19 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      <div className="flex-1">
-        {/* Top Navigation Bar */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 shadow-sm sticky top-0 z-50 m-0 p-0">
-          <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              {/* Logo Section */}
-              <div className="flex items-center gap-3 cursor-pointer group" onClick={handleLogoClick}>
-                <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg group-hover:from-indigo-600 group-hover:to-purple-700 transition-all duration-200 shadow-lg group-hover:shadow-xl">
-                  <Home className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:to-purple-700 transition-all duration-200">
-                    Wallora
-                  </h1>
-                  <p className="text-xs text-gray-500 group-hover:text-gray-600 transition-colors">
-                    Wall Aura Creator
-                  </p>
-                </div>
-              </div>
-              {/* Profile Dropdown on the right */}
-              <div className="flex items-center">
-                <Popover open={profileMenuOpen} onOpenChange={setProfileMenuOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium shadow-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
-                      onClick={() => setProfileMenuOpen((open) => !open)}
-                    >
-                      <User className="h-5 w-5 text-indigo-600" />
-                      <span className="hidden sm:inline">{email}</span>
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent align="end" className="w-48 p-2 bg-white rounded-xl shadow-lg border border-gray-200 mt-2">
-                    <div className="flex flex-col gap-1">
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition-all text-sm font-medium"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Logout
-                      </button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] relative overflow-x-hidden"> {/* Light gold/cream background */}
+      {/* Decorative background shapes */}
+      <div className="absolute -top-8 -left-8 w-64 h-64 bg-[#FFD700]/30 rounded-3xl rotate-6 z-0 pointer-events-none" /> {/* Gold */}
+      <div className="absolute bottom-20 -right-8 w-32 h-32 bg-[#A0522D]/20 rounded-full z-0 pointer-events-none" /> {/* Brown */}
+      <div className="absolute top-24 right-24 w-24 h-24 bg-[#C71585]/20 rounded-full z-0 pointer-events-none" /> {/* Rose */}
+      <div className="absolute bottom-0 left-1/2 w-20 h-20 bg-[#8e44ad]/20 rounded-full z-0 pointer-events-none" /> {/* Purple */}
+      <div className="flex-1 relative z-10">
         {/* Main Content */}
         <div className="p-4 pt-0">
           <div className="max-w-7xl mx-auto">
             {/* Header Section */}
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-[#FFD700] to-[#8e44ad] bg-clip-text text-transparent mb-2">
                 Profile Dashboard
               </h1>
               <p className="text-gray-600 text-lg">Manage your account and design sessions</p>
@@ -198,21 +163,19 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Profile Card - Left */}
               <div className="lg:col-span-1">
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden">
-                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
-                    <div className="flex items-center justify-center mb-4">
-                      <ProfilePhotoUpload
-                        currentPhoto={profilePhoto}
-                        userEmail={email}
-                        onPhotoUpdate={handlePhotoUpdate}
-                      />
-                    </div>
-                    <div className="text-center">
-                      <h2 className="text-2xl font-bold mb-1">Welcome Back!</h2>
-                      <p className="text-indigo-100">{email}</p>
+                <Card className="bg-[#FFF9F3] border border-gray-200 shadow rounded-2xl overflow-hidden"> {/* Soft light gold/cream background */}
+                  <div className="p-6 flex flex-col items-center justify-center">
+                    <ProfilePhotoUpload
+                      currentPhoto={profilePhoto}
+                      userEmail={email}
+                      onPhotoUpdate={handlePhotoUpdate}
+                    />
+                    <div className="text-center mt-2">
+                      <h2 className="text-2xl font-bold mb-1 text-gray-800">Welcome Back!</h2>
+                      <p className="text-gray-500">{email}</p>
                     </div>
                   </div>
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 bg-[#FFF9F3] rounded-b-2xl"> {/* Soft light gold/cream background */}
                     <ProfileForm />
                   </CardContent>
                 </Card>
@@ -220,19 +183,17 @@ export default function ProfilePage() {
 
               {/* Sessions Card - Right */}
               <div className="lg:col-span-2">
-                <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl overflow-hidden">
-                  <div className="bg-gradient-to-r from-blue-500 to-cyan-600 p-6 text-white">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-white/20 rounded-lg">
-                        <Palette className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold">Design Sessions</h2>
-                        <p className="text-blue-100">Continue your creative projects</p>
-                      </div>
+                <Card className="bg-[#FFF9F3] border border-gray-200 shadow rounded-2xl"> {/* Soft light gold/cream background */}
+                  <div className="p-6 flex items-center gap-3 border-b border-gray-100">
+                    <div className="p-2 bg-gray-50 rounded-lg">
+                      <Palette className="h-6 w-6 text-orange-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-800">Design Sessions</h2>
+                      <p className="text-gray-500">Continue your creative projects</p>
                     </div>
                   </div>
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 bg-[#FFF9F3] rounded-b-2xl"> {/* Soft light gold/cream background */}
                     <SessionList />
                   </CardContent>
                 </Card>
@@ -241,14 +202,14 @@ export default function ProfilePage() {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 shadow-lg rounded-xl">
+              <Card className="bg-[#FFF9F3] text-gray-900 border border-gray-200 shadow rounded-2xl"> {/* Soft light gold/cream background */}
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-white/20 rounded-lg">
-                      <Clock className="h-6 w-6" />
+                    <div className="p-3 bg-white/30 rounded-lg">
+                      <Clock className="h-6 w-6 text-[#A0522D]" />
                     </div>
                     <div>
-                      <p className="text-green-100 text-sm">Total Sessions</p>
+                      <p className="text-[#A0522D] text-sm">Total Sessions</p>
                       <p className="text-2xl font-bold">
                         {loading ? "..." : getTotalSessions()}
                       </p>
@@ -257,14 +218,14 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 shadow-lg rounded-xl">
+              <Card className="bg-[#FFF9F3] text-gray-900 border border-gray-200 shadow rounded-2xl"> {/* Soft light gold/cream background */}
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-white/20 rounded-lg">
-                      <Settings className="h-6 w-6" />
+                    <div className="p-3 bg-white/30 rounded-lg">
+                      <Settings className="h-6 w-6 text-[#8e44ad]" />
                     </div>
                     <div>
-                      <p className="text-orange-100 text-sm">Active Projects</p>
+                      <p className="text-[#8e44ad] text-sm">Active Projects</p>
                       <p className="text-2xl font-bold">
                         {loading ? "..." : getActiveProjects()}
                       </p>
@@ -273,14 +234,14 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-r from-purple-500 to-pink-600 text-white border-0 shadow-lg rounded-xl">
+              <Card className="bg-[#FFF9F3] text-gray-900 border border-gray-200 shadow rounded-2xl"> {/* Soft light gold/cream background */}
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-white/20 rounded-lg">
-                      <User className="h-6 w-6" />
+                    <div className="p-3 bg-white/30 rounded-lg">
+                      <User className="h-6 w-6 text-[#C71585]" />
                     </div>
                     <div>
-                      <p className="text-purple-100 text-sm">Account Status</p>
+                      <p className="text-[#C71585] text-sm">Account Status</p>
                       <p className="text-2xl font-bold">
                         {loading ? "..." : getAccountStatus()}
                       </p>

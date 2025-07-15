@@ -68,149 +68,134 @@ export default function WallCreator({ onSubmit }: WallCreatorProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200 shadow-sm">
-        <div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => window.location.href = '/'}>
-            <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg group-hover:from-indigo-600 group-hover:to-purple-700 transition-all duration-200 shadow-lg group-hover:shadow-xl">
-              <Home className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:to-purple-700 transition-all duration-200">
-              Wallora
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium shadow-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all"
-              onClick={() => window.location.href = '/profile'}
-            >
-              <User className="h-5 w-5 text-indigo-600" />
-              <span className="hidden sm:inline">Profile</span>
-            </button>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col items-center px-4 relative"> {/* Light gold/cream background */}
+      {/* Decorative background shapes below header, above main content */}
+      <div className="w-full relative" style={{ height: '0' }}>
+        <div className="absolute left-0 top-0 w-64 h-64 bg-[#FFD700]/30 rounded-3xl rotate-6 z-0 pointer-events-none" style={{ zIndex: 0 }} /> {/* Gold */}
+        <div className="absolute right-0 top-12 w-32 h-32 bg-[#A0522D]/20 rounded-full z-0 pointer-events-none" style={{ zIndex: 0 }} /> {/* Brown */}
+        <div className="absolute left-1/2 top-20 w-24 h-24 bg-[#C71585]/20 rounded-full z-0 pointer-events-none" style={{ zIndex: 0 }} /> {/* Rose */}
+        <div className="absolute right-1/4 top-32 w-20 h-20 bg-[#8e44ad]/20 rounded-full z-0 pointer-events-none" style={{ zIndex: 0 }} /> {/* Purple */}
       </div>
-      <div className="max-w-4xl mx-auto w-full p-6">
-        <Card className="shadow-xl bg-white/90 backdrop-blur rounded-2xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-              Wallora
-            </CardTitle>
-            <CardDescription className="text-lg text-gray-600 font-medium">
-              Wall Aura - Create your perfect image wall
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="width">Wall Width (px)</Label>
-                  <Input
-                    id="width"
-                    type="number"
-                    value={wallSize.width}
-                    onChange={(e) => setWallSize({ ...wallSize, width: Number.parseInt(e.target.value) })}
-                    min="300"
-                  />
+      {/* Main content below header and shapes */}
+      <div className="w-full flex-1 flex items-center justify-center relative z-10 mt-8">
+        <div className="max-w-4xl mx-auto w-full p-6">
+          <Card className="shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30 rounded-3xl backdrop-blur-lg">
+            <CardHeader className="text-center">
+              <CardDescription className="text-lg text-gray-600 font-medium">
+                MIALTER - Create your perfect virtual altar
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="width">Wall Width (px)</Label>
+                    <Input
+                      id="width"
+                      type="number"
+                      value={wallSize.width}
+                      onChange={(e) => setWallSize({ ...wallSize, width: Number.parseInt(e.target.value) })}
+                      min="300"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="height">Wall Height (px)</Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      value={wallSize.height}
+                      onChange={(e) => setWallSize({ ...wallSize, height: Number.parseInt(e.target.value) })}
+                      min="300"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="height">Wall Height (px)</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    value={wallSize.height}
-                    onChange={(e) => setWallSize({ ...wallSize, height: Number.parseInt(e.target.value) })}
-                    min="300"
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-base font-medium">Wall Background</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => backgroundInputRef.current && backgroundInputRef.current.click()}
-                    className="text-xs"
-                  >
-                    <ImageIcon className="mr-1 h-3 w-3" />
-                    Upload Custom
-                  </Button>
-                </div>
-                <input
-                  type="file"
-                  ref={backgroundInputRef}
-                  accept="image/*"
-                  multiple
-                  onChange={handleBackgroundUpload}
-                  className="hidden"
-                />
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {allBackgrounds.map((bg, index) => (
-                    <div
-                      key={`${bg.name}-${index}`}
-                      className={`h-24 rounded-lg border-2 cursor-pointer transition-all relative overflow-hidden group ${
-                        wallBackground.value === bg.value
-                          ? "border-primary ring-2 ring-primary/20"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                      style={{
-                        background: bg.name === "Blank White Wall" ? wallColor : `url(${bg.value})`,
-                        backgroundSize: bg.backgroundSize || "cover",
-                        backgroundPosition: "center",
-                        backgroundRepeat: "no-repeat",
-                      }}
-                      title={bg.name}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-base font-medium">Wall Background</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => backgroundInputRef.current && backgroundInputRef.current.click()}
+                      className="text-xs"
                     >
-                      <div className="absolute inset-0" onClick={() => setWallBackground(bg)} />
-                      {('isCustom' in bg && bg.isCustom) && (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeCustomBackground(bg as CustomBackground);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-1 opacity-0 hover:opacity-100 transition-opacity">
-                        {bg.name}
-                        {('isCustom' in bg && bg.isCustom) && " (Custom)"}
+                      <ImageIcon className="mr-1 h-3 w-3" />
+                      Upload Custom
+                    </Button>
+                  </div>
+                  <input
+                    type="file"
+                    ref={backgroundInputRef}
+                    accept="image/*"
+                    multiple
+                    onChange={handleBackgroundUpload}
+                    className="hidden"
+                  />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {allBackgrounds.map((bg, index) => (
+                      <div
+                        key={`${bg.name}-${index}`}
+                        className={`h-24 rounded-lg border-2 cursor-pointer transition-all relative overflow-hidden group ${
+                          wallBackground.value === bg.value
+                            ? "border-primary ring-2 ring-primary/20"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        style={{
+                          background: bg.name === "Blank White Wall" ? wallColor : `url(${bg.value})`,
+                          backgroundSize: bg.backgroundSize || "cover",
+                          backgroundPosition: "center",
+                          backgroundRepeat: "no-repeat",
+                        }}
+                        title={bg.name}
+                      >
+                        <div className="absolute inset-0" onClick={() => setWallBackground(bg)} />
+                        {('isCustom' in bg && bg.isCustom) && (
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeCustomBackground(bg as CustomBackground);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-1 opacity-0 hover:opacity-100 transition-opacity">
+                          {bg.name}
+                          {('isCustom' in bg && bg.isCustom) && " (Custom)"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {wallBackground.name === "Blank White Wall" && (
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                      <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                        <Palette className="h-4 w-4" />
+                        Wall Color
+                      </Label>
+                      <div className="flex items-center gap-3">
+                        <Input
+                          type="color"
+                          value={wallColor}
+                          onChange={(e) => setWallColor(e.target.value)}
+                          className="w-16 h-10"
+                        />
+                        <span className="text-sm text-gray-600">Choose your wall color</span>
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-                {wallBackground.name === "Blank White Wall" && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                    <Label className="text-sm font-medium mb-2 block flex items-center gap-2">
-                      <Palette className="h-4 w-4" />
-                      Wall Color
-                    </Label>
-                    <div className="flex items-center gap-3">
-                      <Input
-                        type="color"
-                        value={wallColor}
-                        onChange={(e) => setWallColor(e.target.value)}
-                        className="w-16 h-10"
-                      />
-                      <span className="text-sm text-gray-600">Choose your wall color</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <Button type="submit" className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full shadow-lg text-lg py-3" size="lg">
-                <Plus className="mr-2 h-5 w-5" />
-                Create Your Wall
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <Button type="submit" className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full shadow-lg text-lg py-3" size="lg">
+                  <Plus className="mr-2 h-5 w-5" />
+                  Create Your Wall
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

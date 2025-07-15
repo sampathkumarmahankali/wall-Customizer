@@ -11,7 +11,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (typeof window !== "undefined") {
       const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-      if (!isLoggedIn && pathname !== "/login" && pathname !== "/register") {
+      // Only restrict /create, /editor, /profile
+      const protectedRoutes = ["/create", "/editor", "/profile"];
+      if (!isLoggedIn && protectedRoutes.some(route => pathname.startsWith(route))) {
         router.replace("/login");
       }
       setIsReady(true);

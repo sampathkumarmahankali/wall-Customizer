@@ -136,7 +136,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Overview of your Wallora platform</p>
+          <p className="text-gray-600 mt-2">Overview of your MIALTER platform</p>
         </div>
         <Button onClick={handleExportUsers} className="flex items-center gap-2">
           <Download className="h-4 w-4" />

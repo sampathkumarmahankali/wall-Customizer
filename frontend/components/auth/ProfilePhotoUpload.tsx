@@ -77,7 +77,6 @@ const uploadProfilePhoto = async (base64Data: string, fileName: string, fileType
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Upload error:', error);
     throw error;
   }
 };
@@ -139,7 +138,6 @@ export default function ProfilePhotoUpload({
         onPhotoSelect(file);
       }
     } catch (error) {
-      console.error('Error uploading photo:', error);
       setError('Failed to upload photo. Please try again.');
     }
   };
@@ -171,11 +169,10 @@ export default function ProfilePhotoUpload({
             onPhotoUpdate('');
           }
         } else {
-          console.error('Failed to remove profile photo from backend');
+          // Failed to remove profile photo from backend
         }
       }
     } catch (error) {
-      console.error('Error removing photo:', error);
       setError('Failed to remove photo. Please try again.');
     }
   };

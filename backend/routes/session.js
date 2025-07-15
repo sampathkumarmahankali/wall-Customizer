@@ -64,7 +64,7 @@ router.get('/sessions/:userId', async (req, res) => {
 router.get('/session/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const [rows] = await pool.query('SELECT id, name, data, updated_at FROM edit_sessions WHERE id = ?', [sessionId]);
+    const [rows] = await pool.query('SELECT es.id, es.name, es.data, es.updated_at, es.user_id, u.email as creatorEmail FROM edit_sessions es JOIN users u ON es.user_id = u.id WHERE es.id = ?', [sessionId]);
     if (rows.length === 0) return res.status(404).json({ error: 'Session not found' });
     const session = rows[0];
     let data = null;
@@ -73,7 +73,7 @@ router.get('/session/:sessionId', async (req, res) => {
     } catch (e) {
       data = null;
     }
-    res.json({ id: session.id, name: session.name, data, updated_at: session.updated_at });
+    res.json({ id: session.id, name: session.name, data, updated_at: session.updated_at, user_id: session.user_id, creatorEmail: session.creatorEmail });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error', details: err.message });
