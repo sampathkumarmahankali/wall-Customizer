@@ -60,6 +60,8 @@ const SessionList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
+  const [page, setPage] = useState(0); // pagination state
+  const sessionsPerPage = 10;
   const router = useRouter();
 
   useEffect(() => {
@@ -122,6 +124,11 @@ const SessionList: React.FC = () => {
     return date.toLocaleDateString();
   };
 
+  // Pagination logic
+  const paginatedSessions = sessions.slice(page * sessionsPerPage, (page + 1) * sessionsPerPage);
+  const hasNext = (page + 1) * sessionsPerPage < sessions.length;
+  const hasPrev = page > 0;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -180,79 +187,93 @@ const SessionList: React.FC = () => {
             </Button>
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sessions.map((session) => (
-            <Card 
-              key={session.id}
-              className="group cursor-pointer hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-blue-300 bg-white hover:bg-blue-50/30"
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div 
-                    className="flex items-center gap-3 flex-1 cursor-pointer"
-                    onClick={() => handleSessionClick(session.id)}
-                  >
-                    <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800 group-hover:text-blue-700 transition-colors">
-                        {session.name}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Clock className="h-3 w-3 text-gray-400" />
-                        <span className="text-xs text-gray-500">
-                          {formatDate(session.updatedAt)}
-                        </span>
+      ) :
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {paginatedSessions.map((session) => (
+              <Card 
+                key={session.id}
+                className="group cursor-pointer hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-blue-300 bg-white hover:bg-blue-50/30"
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div 
+                      className="flex items-center gap-3 flex-1 cursor-pointer"
+                      onClick={() => handleSessionClick(session.id)}
+                    >
+                      <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-800 group-hover:text-blue-700 transition-colors">
+                          {session.name}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Clock className="h-3 w-3 text-gray-400" />
+                          <span className="text-xs text-gray-500">
+                            {formatDate(session.updatedAt)}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="secondary" className="text-xs">
+                        Active
+                      </Badge>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteSession(session.id, session.name);
+                        }}
+                        disabled={deletingSessionId === session.id}
+                      >
+                        {deletingSessionId === session.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Badge variant="secondary" className="text-xs">
-                      Active
-                    </Badge>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      <span>Last edited</span>
+                    </div>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-8 w-8"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-700 hover:bg-blue-100"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteSession(session.id, session.name);
+                        handleSessionClick(session.id);
                       }}
-                      disabled={deletingSessionId === session.id}
                     >
-                      {deletingSessionId === session.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
+                      <Edit3 className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <Calendar className="h-3 w-3" />
-                    <span>Last edited</span>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-700 hover:bg-blue-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSessionClick(session.id);
-                    }}
-                  >
-                    <Edit3 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            {hasPrev && (
+              <Button variant="outline" size="sm" onClick={() => setPage(page - 1)}>
+                Previous
+              </Button>
+            )}
+            {hasNext && (
+              <Button variant="outline" size="sm" onClick={() => setPage(page + 1)}>
+                Next
+              </Button>
+            )}
+          </div>
+        </>
+      }
 
       {/* Quick Stats */}
       {sessions.length > 0 && (

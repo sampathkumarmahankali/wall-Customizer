@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,7 +44,14 @@ export default function RegisterPage() {
       setSuccess("Registration successful! Redirecting...")
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("userEmail", email)
-      setTimeout(() => router.replace("/"), 1000)
+      const redirect = searchParams.get('redirect');
+      setTimeout(() => {
+        if (redirect) {
+          router.replace(redirect);
+        } else {
+          router.replace("/");
+        }
+      }, 1000)
     } catch (err) {
       setError("Network error. Please try again.")
     } finally {
@@ -52,12 +60,17 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-100 to-purple-200">
-      <div className="flex-1 flex items-center justify-center">
-        <Card className="w-full max-w-md shadow-lg">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col overflow-x-hidden"> {/* Light gold/cream background */}
+      {/* Decorative background shapes */}
+      <div className="absolute top-20 -left-8 w-64 h-64 bg-[#FFD700]/30 rounded-3xl rotate-6 z-0 pointer-events-none" /> {/* Gold */}
+      <div className="absolute -bottom-8 right-8 w-32 h-32 bg-[#A0522D]/20 rounded-full z-0 pointer-events-none" /> {/* Brown */}
+      <div className="absolute top-32 right-24 w-24 h-24 bg-[#C71585]/20 rounded-full z-0 pointer-events-none" /> {/* Rose */}
+      <div className="absolute bottom-0 left-1/2 w-20 h-20 bg-[#8e44ad]/20 rounded-full z-0 pointer-events-none" /> {/* Purple */}
+      <div className="flex-1 flex items-center justify-center relative z-10">
+        <Card className="w-full max-w-md shadow-lg mt-12">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">Register</CardTitle>
-            <CardDescription className="text-center">Create a new account to use Wallora</CardDescription>
+            <CardTitle className="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 to-green-600 bg-clip-text text-transparent tracking-tight text-center">Register</CardTitle>
+            <CardDescription className="text-center">Create a new account to use MIALTER</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -99,7 +112,11 @@ export default function RegisterPage() {
               {success && <div className="text-green-600 text-sm text-center">{success}</div>}
               <Button type="submit" className="w-full" size="lg" disabled={loading}>{loading ? "Registering..." : "Register"}</Button>
               <div className="text-xs text-gray-500 text-center mt-2">
-                Already have an account? <a href="/login" className="text-blue-600 underline">Login</a>
+                Already have an account? {(() => {
+                  const redirect = searchParams.get('redirect');
+                  const loginHref = redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login';
+                  return <a href={loginHref} className="text-blue-600 underline">Login</a>;
+                })()}
               </div>
             </form>
           </CardContent>

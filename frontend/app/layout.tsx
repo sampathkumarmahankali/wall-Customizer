@@ -4,7 +4,7 @@ import ClientLayout from "@/components/ClientLayout"
 import LayoutWithHeader from "@/components/LayoutWithHeader"
 
 export const metadata: Metadata = {
-  title: 'Wallora',
+  title: 'MIALTER',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

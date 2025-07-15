@@ -34,7 +34,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/auth/register", {
+      const response = await fetch("http://localhost:4000/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,7 +81,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-            Wallora
+            MIALTER
           </CardTitle>
           <CardDescription className="text-lg text-gray-600">
             Create your account to get started

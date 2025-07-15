@@ -6,6 +6,8 @@ const authRoutes = require('./routes/auth');
 const sessionRoutes = require('./routes/session');
 const aiRoutes = require('./routes/ai');
 const adminRoutes = require('./routes/admin');
+const emailRoutes = require('./routes/email');
+const sharedRoutes = require('./routes/shared');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -22,6 +24,10 @@ app.use('/api', sessionRoutes);
 app.use('/api/ai', aiRoutes);
 // Admin routes
 app.use('/api/admin', adminRoutes);
+// Email routes
+app.use('/api/email', emailRoutes);
+// Shared routes
+app.use('/api/shared', sharedRoutes);
 
 app.get('/', (req, res) => {
   res.send('Wallora Server Running');

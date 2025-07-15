@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const pool = require('../db');
 const { generateToken, authenticateToken } = require('../middleware/auth');
+const emailService = require('../services/email-service');
 
 const router = express.Router();
 
@@ -42,6 +43,11 @@ router.post('/register', async (req, res) => {
       id: result.insertId,
       email: email,
       name: name
+    });
+
+    // Send welcome email (async, don't wait for it)
+    emailService.sendWelcomeEmail(email, name).catch(error => {
+      console.error('Error sending welcome email:', error);
     });
 
     res.status(201).json({
@@ -109,7 +115,8 @@ router.post('/login', async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {
@@ -294,6 +301,16 @@ router.delete('/remove-profile-photo', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Profile photo removal error:', error);
     res.status(500).json({ message: 'Failed to remove profile photo' });
+  }
+});
+
+// List all users (for sharing)
+router.get('/users', authenticateToken, async (req, res) => {
+  try {
+    const [users] = await pool.execute('SELECT id, name, email FROM users');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch users' });
   }
 });
 

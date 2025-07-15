@@ -28,7 +28,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
-      console.log("Login response:", data);
+
 
       // Save token unconditionally for testing
       if (data.token) {
@@ -47,7 +47,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-            Wallora
+            MIALTER
           </CardTitle>
           <CardDescription className="text-lg text-gray-600">
             Welcome back! Sign in to your account

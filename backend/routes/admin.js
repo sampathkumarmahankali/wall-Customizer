@@ -339,4 +339,39 @@ router.get('/payments', async (req, res) => {
   }
 });
 
+// User Activity Report
+router.get('/reports/user-activity', async (req, res) => {
+  try {
+    const [users] = await pool.execute(
+      'SELECT id, name, email, last_login, is_active FROM users ORDER BY last_login DESC'
+    );
+    res.json({ users });
+  } catch (error) {
+    console.error('User Activity Report error:', error);
+    res.status(500).json({ message: 'Failed to fetch user activity report' });
+  }
+});
+
+// Session Analytics Report
+router.get('/reports/session-analytics', async (req, res) => {
+  try {
+    // Sessions per user
+    const [sessionsPerUser] = await pool.execute(
+      `SELECT u.id, u.name, u.email, COUNT(s.id) as session_count
+       FROM users u
+       LEFT JOIN edit_sessions s ON u.id = s.user_id
+       GROUP BY u.id
+       ORDER BY session_count DESC`
+    );
+    // Recent sessions
+    const [recentSessions] = await pool.execute(
+      'SELECT id, user_id, name, updated_at FROM edit_sessions ORDER BY updated_at DESC LIMIT 10'
+    );
+    res.json({ sessionsPerUser, recentSessions });
+  } catch (error) {
+    console.error('Session Analytics Report error:', error);
+    res.status(500).json({ message: 'Failed to fetch session analytics report' });
+  }
+});
+
 module.exports = router; 
