@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 interface FlaggedContent {
   id: number;
@@ -74,6 +75,16 @@ export default function ModerationPage() {
   const [selectedContent, setSelectedContent] = useState<FlaggedContent | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
+  // Decor management state
+  const [categories, setCategories] = useState<any[]>([]);
+  const [decors, setDecors] = useState<any[]>([]);
+  const [loadingDecors, setLoadingDecors] = useState(true);
+  const [showDecorModal, setShowDecorModal] = useState(false);
+  const [editingDecor, setEditingDecor] = useState<any | null>(null);
+  const [newCategory, setNewCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [decorImage, setDecorImage] = useState<string>("");
+
   useEffect(() => {
     const fetchFlaggedContent = async () => {
       try {
@@ -98,6 +109,24 @@ export default function ModerationPage() {
 
     fetchFlaggedContent();
   }, []);
+
+  // Fetch categories and decors
+  useEffect(() => {
+    fetch("http://localhost:4000/api/decor-categories")
+      .then(res => res.json())
+      .then(data => setCategories(data.categories || []));
+    fetch("http://localhost:4000/api/decors")
+      .then(res => res.json())
+      .then(data => setDecors(data.decors || []))
+      .finally(() => setLoadingDecors(false));
+  }, []);
+
+  // Set default selected category on load
+  useEffect(() => {
+    if (categories.length > 0 && !selectedCategory) {
+      setSelectedCategory(categories[0].id);
+    }
+  }, [categories, selectedCategory]);
 
   const handleModerationAction = async (contentId: number, action: string) => {
     setActionLoading(contentId);
@@ -174,6 +203,82 @@ export default function ModerationPage() {
     const rejected = flaggedContent.filter(item => item.status === 'rejected').length;
     return { pending, approved, rejected };
   };
+
+  // Add category
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+    const res = await fetch("http://localhost:4000/api/decor-categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newCategory.trim() })
+    });
+    if (res.ok) {
+      const cat = await res.json();
+      setCategories([...categories, cat]);
+      setNewCategory("");
+    }
+  };
+
+  // Add/edit decor
+  const handleSaveDecor = async () => {
+    if (!editingDecor?.name || !editingDecor?.category_id || !decorImage) return;
+    const payload = {
+      name: editingDecor.name,
+      category_id: editingDecor.category_id,
+      image_base64: decorImage,
+      is_active: editingDecor.is_active !== false,
+    };
+    if (editingDecor.id) {
+      // Edit
+      const res = await fetch(`http://localhost:4000/api/decors/${editingDecor.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setDecors(decors.map(d => d.id === editingDecor.id ? updated : d));
+        setShowDecorModal(false);
+        setEditingDecor(null);
+        setDecorImage("");
+      }
+    } else {
+      // Add
+      const res = await fetch("http://localhost:4000/api/decors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setDecors([...decors, created]);
+        setShowDecorModal(false);
+        setEditingDecor(null);
+        setDecorImage("");
+      }
+    }
+  };
+
+  // Delete decor
+  const handleDeleteDecor = async (id: number) => {
+    const res = await fetch(`http://localhost:4000/api/decors/${id}`, { method: "DELETE" });
+    if (res.ok) setDecors(decors.filter(d => d.id !== id));
+  };
+
+  // Handle image upload (convert to base64)
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setDecorImage(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  // Group decors by category
+  const decorsByCategory = categories.map(cat => ({
+    ...cat,
+    decors: decors.filter(d => d.category_id === cat.id)
+  }));
 
   if (loading) {
     return (
@@ -331,6 +436,91 @@ export default function ModerationPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Decor Management Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Decor Management</CardTitle>
+          <Button onClick={() => { setEditingDecor(null); setShowDecorModal(true); }}>Add Decor</Button>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 flex gap-2 items-center">
+            <Input
+              placeholder="Add new category"
+              value={newCategory}
+              onChange={e => setNewCategory(e.target.value)}
+              className="w-64"
+            />
+            <Button onClick={handleAddCategory}>Add Category</Button>
+          </div>
+          {/* Category selector */}
+          <div className="flex gap-2 mb-4 flex-wrap">
+            {categories.map((cat, idx) => (
+              <Button
+                key={cat.id}
+                variant={selectedCategory === cat.id ? 'default' : 'outline'}
+                className={selectedCategory === cat.id ? 'font-bold border-primary' : ''}
+                onClick={() => setSelectedCategory(cat.id)}
+              >
+                {cat.name}
+              </Button>
+            ))}
+          </div>
+          {loadingDecors ? (
+            <div>Loading decors...</div>
+          ) : (
+            <div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50 rounded-lg">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                {decorsByCategory.filter(cat => cat.id === selectedCategory).map(cat => (
+                  <React.Fragment key={cat.id}>
+                    {cat.decors.map((decor: any) => (
+                      <div key={decor.id} className="border rounded-lg p-3 flex flex-col items-center bg-white hover:bg-blue-50 transition cursor-pointer">
+                        <img src={decor.image_base64} alt={decor.name} className="w-16 h-16 object-contain mb-2 rounded" />
+                        <div className="font-semibold mb-1 text-center">{decor.name}</div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => { setEditingDecor(decor); setDecorImage(decor.image_base64); setShowDecorModal(true); }}>Edit</Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteDecor(decor.id)}>Delete</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      {/* Decor Modal */}
+      <Dialog open={showDecorModal} onOpenChange={setShowDecorModal}>
+        <DialogContent className="max-w-lg mx-auto">
+          <DialogHeader>
+            <DialogTitle>{editingDecor?.id ? "Edit Decor" : "Add Decor"}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <Input
+              placeholder="Decor Name"
+              value={editingDecor?.name || ""}
+              onChange={e => setEditingDecor({ ...editingDecor, name: e.target.value })}
+            />
+            <select
+              className="border rounded p-2"
+              value={editingDecor?.category_id || ""}
+              onChange={e => setEditingDecor({ ...editingDecor, category_id: Number(e.target.value) })}
+            >
+              <option value="">Select Category</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+            <Input type="file" accept="image/*" onChange={handleImageUpload} />
+            {decorImage && <img src={decorImage} alt="Preview" className="w-20 h-20 object-contain mx-auto" />}
+            <div className="flex gap-2 justify-end mt-4">
+              <Button variant="outline" onClick={() => setShowDecorModal(false)}>Cancel</Button>
+              <Button onClick={handleSaveDecor}>{editingDecor?.id ? "Update" : "Add"} Decor</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Moderation Guidelines */}
       <Card>

@@ -15,17 +15,6 @@ import { authenticatedFetch } from "@/lib/auth";
 import { getAllSharedSessions, createSharedSession } from '@/lib/shared';
 import { getToken } from '@/lib/auth';
 
-// Sample images filenames (from public/samples)
-const sampleImages = [
-  "/samples/diya.png",
-  "/samples/garland-removebg-preview.png",
-  "/samples/garland2-removebg-preview.png",
-  "/samples/garland3-removebg-preview.png",
-  "/samples/table7-removebg-preview.png",
-  "/samples/fruits_basket-removebg-preview.png",
-  "/samples/candle-6262984_1280-removebg-preview.png",
-];
-
 interface WallEditorProps {
   initialSettings?: any;
   editable?: boolean;
@@ -75,6 +64,34 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
   const [searchEmail, setSearchEmail] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [planLimit, setPlanLimit] = useState<number | null>(null);
+  const [sessionCount, setSessionCount] = useState<number | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [plan, setPlan] = useState<string>('basic');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // Remove static sampleImages
+  const [decorCategories, setDecorCategories] = useState<any[]>([]);
+  const [decorItems, setDecorItems] = useState<any[]>([]);
+  const [loadingDecors, setLoadingDecors] = useState(true);
+  const [selectedDecorCategory, setSelectedDecorCategory] = useState<string | null>(null);
+
+  // Fetch decor categories and items
+  useEffect(() => {
+    fetch('http://localhost:4000/api/decor-categories')
+      .then(res => res.json())
+      .then(data => setDecorCategories(data.categories || []));
+    fetch('http://localhost:4000/api/decors')
+      .then(res => res.json())
+      .then(data => setDecorItems(data.decors || []))
+      .finally(() => setLoadingDecors(false));
+  }, []);
+
+  // Group decors by category
+  const decorsByCategory = decorCategories.map(cat => ({
+    ...cat,
+    decors: decorItems.filter((d: any) => d.category_id === cat.id && d.is_active)
+  }));
 
   // Helper to get current timestamp
   const getTimestamp = () => new Date().toISOString();
@@ -133,6 +150,35 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
       }
     }
   }, [sessionId, initialSettings]);
+
+  useEffect(() => {
+    // Fetch user's plan and session count
+    const fetchPlanAndSessions = async () => {
+      const email = localStorage.getItem('userEmail');
+      if (!email) return;
+      // Get userId
+      const userIdRes = await fetch(`http://localhost:4000/api/userid-by-email/${encodeURIComponent(email)}`);
+      const userIdData = await userIdRes.json();
+      const userId = userIdData.userId;
+      // Get session count
+      const sessionsRes = await fetch(`http://localhost:4000/api/sessions/${userId}`);
+      const sessionsData = await sessionsRes.json();
+      setSessionCount(Array.isArray(sessionsData) ? sessionsData.length : 0);
+      // Get plan
+      const profileRes = await fetch(`http://localhost:4000/api/profile`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const profileData = await profileRes.json();
+      const userPlan = profileData.user?.plan || 'basic';
+      setPlan(userPlan.toLowerCase());
+      // Get plan details
+      const plansRes = await fetch('http://localhost:4000/api/plans');
+      const plansData = await plansRes.json();
+      const planObj = Array.isArray(plansData.plans) ? plansData.plans.find((p: any) => p.name.toLowerCase() === userPlan) : null;
+      setPlanLimit(planObj?.session_limit ?? 3);
+    };
+    fetchPlanAndSessions();
+  }, []);
 
   // --- Handlers and Utility Functions ---
 
@@ -283,6 +329,11 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
 
   // Save session with robust wall layout structure
   const handleSaveSession = async () => {
+    // Restrict if session count >= plan limit
+    if (planLimit !== null && sessionCount !== null && sessionCount >= planLimit && !sessionId) {
+      setShowLimitModal(true);
+      return;
+    }
     setSaveStatus("Saving...");
     const email = localStorage.getItem("userEmail");
     let name = sessionName.trim();
@@ -369,7 +420,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
       const res = await createSharedSession({ session_id: Number(sessionId), type: 'public', editors: [], viewers: [] });
       if (res && res.id) {
         const url = `${window.location.origin}/altar/${sessionId}?shared=1`;
-        setShareLink(url);
+    setShareLink(url);
         setShareStatus("Shared! Copy the link below.");
       } else {
         setShareStatus("Failed to share session.");
@@ -490,6 +541,11 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
   // If not editable, disable editing features
   const isEditable = editable;
 
+  // Helper to open plan selection on profile page
+  const goToPlans = () => {
+    window.location.href = '/profile?showPlans=1';
+  };
+
   // --- Render ---
   return (
     <div className="bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] relative"> {/* Light gold/cream background */}
@@ -506,44 +562,56 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
           {/* Enhanced floating toolbar */}
           <div className="mb-4 flex justify-center">
             <div className="backdrop-blur-xl bg-white/60 shadow-2xl rounded-full px-6 py-3 flex gap-3 items-center border border-[#FFD700]/20" style={{ minWidth: 320, maxWidth: 900 }}>
-              <Button
-                onClick={() => fileInputRef.current?.click()}
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-              >
+                  >
                 <Upload className="h-5 w-5" /> Add Images
-              </Button>
-              <Button
-                onClick={() => setShowSampleDialog(true)}
+                  </Button>
+                  <Button
+                    onClick={() => setShowSampleDialog(true)}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-              >
+                  >
                 <ImageIcon className="h-5 w-5" /> Decors
-              </Button>
-              <Button
-                onClick={() => setShowImageEditor(!showImageEditor)}
+                  </Button>
+                  <Button
+                    onClick={() => setShowImageEditor(!showImageEditor)}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-              >
+                  >
                 <Edit className="h-5 w-5" /> {showImageEditor ? "Hide" : "Edit"} Images
-              </Button>
-              <Button
-                onClick={() => setShowTools(!showTools)}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (plan === 'basic') {
+                        setShowUpgradeModal(true);
+                      } else {
+                        setShowTools(!showTools);
+                      }
+                    }}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-              >
+                  >
                 <Sparkles className="h-5 w-5" /> Tools
-              </Button>
-              <Button
-                onClick={() => setShowExportDialog(true)}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (plan === 'basic') {
+                        setShowUpgradeModal(true);
+                      } else {
+                        setShowExportDialog(true);
+                      }
+                    }}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-              >
+                  >
                 <Download className="h-5 w-5" /> Export
-              </Button>
-              <Button
-                onClick={() => setShowSettings(true)}
+                  </Button>
+                  <Button
+                    onClick={() => setShowSettings(true)}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-              >
+                  >
                 <Settings className="h-5 w-5" /> Wall Settings
-              </Button>
-            </div>
-          </div>
+                  </Button>
+                </div>
+              </div>
 
           {/* Hidden file input for image uploads */}
           <input
@@ -671,28 +739,78 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
               />
             </div>
           )}
+          {/* Upgrade modal for export */}
+          {showUpgradeModal && (
+            <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+              <DialogContent className="max-w-md mx-auto">
+                <DialogHeader>
+                  <DialogTitle>Upgrade Required</DialogTitle>
+                </DialogHeader>
+                <div className="text-center py-4">
+                  <p className="mb-4 text-lg font-semibold text-gray-700">Exporting images is only available for Premium and Ultra users.</p>
+                  <p className="mb-4 text-gray-600">Upgrade your plan to unlock export features and more!</p>
+                  <div className="flex flex-col gap-2">
+                    <Button className="w-full" variant="default" onClick={goToPlans}>Upgrade to Premium</Button>
+                    <Button className="w-full" variant="secondary" onClick={goToPlans}>Upgrade to Ultra</Button>
+                  </div>
+                </div>
+                <DialogClose asChild>
+                  <Button variant="outline" className="w-full mt-2">Cancel</Button>
+                </DialogClose>
+              </DialogContent>
+            </Dialog>
+          )}
 
           {/* Decors Dialog */}
           {showSampleDialog && (
             <Dialog open={showSampleDialog} onOpenChange={setShowSampleDialog}>
-              <DialogContent>
+              <DialogContent className="max-w-2xl mx-auto">
                 <DialogHeader>
-                  <DialogTitle>Select a Decor</DialogTitle>
+                  <DialogTitle>Choose a Decor</DialogTitle>
                 </DialogHeader>
-                <div className="max-h-80 overflow-y-auto">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 py-2">
-                    {sampleImages.map((src, idx) => (
-                      <div
-                        key={src}
-                        className="cursor-pointer border-2 rounded-lg overflow-hidden hover:border-primary transition-all"
-                        onClick={() => handleAddSampleImage(src)}
-                        title="Add to wall"
-                      >
-                        <img src={src} alt={`Decor ${idx + 1}`} className="w-full h-32 object-contain bg-white" />
-                      </div>
-                    ))}
+                {loadingDecors ? (
+                  <div>Loading decors...</div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Decor type/category selector */}
+                    <div className="flex gap-2 mb-4 flex-wrap">
+                      {decorsByCategory.map((cat, idx) => (
+                        <Button
+                          key={cat.id}
+                          variant={selectedDecorCategory === cat.id ? 'default' : 'outline'}
+                          className={selectedDecorCategory === cat.id ? 'font-bold border-primary' : ''}
+                          onClick={() => setSelectedDecorCategory(cat.id)}
+                        >
+                          {cat.name}
+                        </Button>
+                      ))}
+                    </div>
+                    {/* Show only selected category's decors */}
+                    {decorsByCategory.filter(cat => cat.id === selectedDecorCategory).map(cat => {
+                      // Restrict images by plan
+                      let decorsToShow = cat.decors;
+                      if (plan === 'basic') {
+                        decorsToShow = cat.decors.slice(0, 1);
+                      }
+                      return (
+                        <div key={cat.id}>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50 rounded-lg">
+                            {decorsToShow.map((decor: any) => (
+                              <div
+                                key={decor.id}
+                                className="border border-gray-200 rounded-xl p-3 flex flex-col items-center cursor-pointer hover:shadow-lg transition bg-white hover:bg-blue-50"
+                                onClick={() => handleAddSampleImage(decor.image_base64)}
+                              >
+                                <img src={decor.image_base64} alt={decor.name} className="w-20 h-20 object-contain mb-2 rounded" />
+                                <div className="text-sm text-center font-semibold">{decor.name}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
+                )}
                 <DialogClose asChild>
                   <Button variant="outline" className="w-full mt-4">Close</Button>
                 </DialogClose>
@@ -738,13 +856,13 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
             <Card className="w-full max-w-xs p-3 flex flex-col items-center shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30 rounded-3xl backdrop-blur-lg">
               <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                 <DialogTrigger asChild>
-                  <Button
-                    variant="default"
-                    className="rounded-full px-6 h-12 font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-md transition flex items-center justify-center"
+              <Button
+                variant="default"
+                className="rounded-full px-6 h-12 font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-md transition flex items-center justify-center"
                     onClick={handleOpenShareDialog}
-                  >
-                    Share
-                  </Button>
+              >
+                Share
+              </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg w-full mx-auto">
                   <DialogHeader>
@@ -807,26 +925,26 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
                       </div>
                     )}
                     <Button onClick={handleShareSubmit} className="w-full mt-2">Generate Share Link</Button>
-                    {shareLink && (
-                      <div className="flex items-center mt-4 w-full">
-                        <input
-                          type="text"
-                          value={shareLink}
-                          readOnly
-                          className="flex-1 px-2 py-1 border border-gray-300 rounded-l bg-gray-50 text-xs text-gray-700"
-                          style={{ minWidth: 0 }}
-                        />
-                        <button
-                          onClick={handleCopyLink}
-                          className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-r border-l border-gray-300 flex items-center"
-                          title="Copy link"
-                          type="button"
-                        >
-                          <ClipboardCopy className="h-4 w-4 text-gray-700" />
-                        </button>
-                      </div>
-                    )}
-                    {shareStatus && <div className="mt-2 text-green-600 text-sm font-medium">{shareStatus}</div>}
+              {shareLink && (
+                <div className="flex items-center mt-4 w-full">
+                  <input
+                    type="text"
+                    value={shareLink}
+                    readOnly
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded-l bg-gray-50 text-xs text-gray-700"
+                    style={{ minWidth: 0 }}
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-r border-l border-gray-300 flex items-center"
+                    title="Copy link"
+                    type="button"
+                  >
+                    <ClipboardCopy className="h-4 w-4 text-gray-700" />
+                  </button>
+                </div>
+              )}
+              {shareStatus && <div className="mt-2 text-green-600 text-sm font-medium">{shareStatus}</div>}
                   </div>
                 </DialogContent>
               </Dialog>
@@ -834,6 +952,17 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
           </div>
         </div>
       </div>
+      <Dialog open={showLimitModal} onOpenChange={setShowLimitModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Session Limit Reached</DialogTitle>
+          </DialogHeader>
+          <div className="text-center text-lg">You have reached your session limit for your current plan.<br/>Please upgrade your plan to save more sessions.</div>
+          <div className="flex justify-center mt-4">
+            <Button onClick={() => setShowLimitModal(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

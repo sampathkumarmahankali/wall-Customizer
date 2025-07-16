@@ -14,6 +14,9 @@ import {
   ArrowRight
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface PaymentData {
   totalRevenue: number;
@@ -22,10 +25,50 @@ interface PaymentData {
   subscriptionRevenue: number;
 }
 
+// Add Plan interface for type safety
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  features: string[];
+  session_limit: number;
+}
+
 export default function PaymentsPage() {
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  // Plan management state
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  const [newFeature, setNewFeature] = useState("");
+  const [featureEditIdx, setFeatureEditIdx] = useState<number | null>(null);
+  const [featureEditValue, setFeatureEditValue] = useState("");
+
+  // Fetch plans from backend (must be at top level)
+  useEffect(() => {
+    setLoadingPlans(true);
+    fetch("http://localhost:4000/api/plans")
+      .then(res => res.json())
+      .then(data => {
+        const rawPlans = Array.isArray(data.plans) ? data.plans : [];
+        const normalized = rawPlans.map((p: any) => ({
+          id: String(p.id ?? ''),
+          name: p.name ?? '',
+          price: typeof p.price === 'number' ? p.price : Number(p.price) || 0,
+          features: Array.isArray(p.features)
+            ? p.features
+            : (typeof p.features === 'string' ? JSON.parse(p.features) : []),
+          session_limit: typeof p.session_limit === 'number' ? p.session_limit : Number(p.session_limit) || 0,
+        }));
+        setPlans(normalized);
+      })
+      .catch(() => setPlans([]))
+      .finally(() => setLoadingPlans(false));
+  }, []);
 
   useEffect(() => {
     const fetchPaymentData = async () => {
@@ -58,6 +101,9 @@ export default function PaymentsPage() {
       currency: 'USD',
     }).format(amount);
   };
+
+  // Add a helper for INR formatting
+  const formatINR = (amount: number) => amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -103,6 +149,150 @@ export default function PaymentsPage() {
   const handleViewPaymentHistory = () => {
     alert('Payment history feature would show detailed transaction logs. This would typically open a modal or navigate to a dedicated page.');
   };
+
+  // In handleEditPlan and handleAddPlan, always provide all required fields
+  const handleEditPlan = (plan: Plan) => {
+    setEditingPlan({
+      id: plan.id,
+      name: plan.name ?? '',
+      price: plan.price ?? 0,
+      features: Array.isArray(plan.features) ? plan.features : [],
+      session_limit: plan.session_limit ?? 0,
+    });
+    setShowPlanModal(true);
+    setNewFeature("");
+    setFeatureEditIdx(null);
+    setFeatureEditValue("");
+  };
+
+  const handleAddPlan = () => {
+    setEditingPlan({ id: '', name: '', price: 0, features: [], session_limit: 0 });
+    setShowPlanModal(true);
+    setNewFeature("");
+    setFeatureEditIdx(null);
+    setFeatureEditValue("");
+  };
+
+  // Delete plan
+  const handleDeletePlan = async (planId: string) => {
+    try {
+      const res = await fetch(`http://localhost:4000/api/plans/${planId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete plan');
+      setPlans(plans.filter(p => p.id !== planId));
+      toast.success("Plan deleted");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete plan");
+    }
+  };
+
+  // Add or update plan
+  const handleSavePlan = async () => {
+    if (!editingPlan || typeof editingPlan !== 'object') return;
+    if (!editingPlan.name) {
+      toast.error("Plan name is required");
+      return;
+    }
+    try {
+      if (editingPlan.id && editingPlan.id !== '') {
+        // Update existing plan
+        const res = await fetch(`http://localhost:4000/api/plans/${editingPlan.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: editingPlan.name,
+            price: editingPlan.price,
+            features: editingPlan.features,
+            session_limit: editingPlan.session_limit,
+          }),
+        });
+        const text = await res.text();
+        let updated;
+        try { updated = JSON.parse(text); } catch { updated = text; }
+        if (!res.ok) {
+          toast.error(`Failed to update plan: ${res.status} ${res.statusText}`);
+          console.error('Update plan error:', updated);
+          return;
+        }
+        setPlans(plans.map(p => (p.id === editingPlan.id ? { ...updated, id: String(updated.id), features: updated.features } : p)));
+        toast.success("Plan updated");
+      } else {
+        // Add new plan
+        const res = await fetch('http://localhost:4000/api/plans', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: editingPlan.name,
+            price: editingPlan.price,
+            features: editingPlan.features,
+            session_limit: editingPlan.session_limit,
+          }),
+        });
+        const text = await res.text();
+        let created;
+        try { created = JSON.parse(text); } catch { created = text; }
+        if (!res.ok) {
+          toast.error(`Failed to add plan: ${res.status} ${res.statusText}`);
+          console.error('Add plan error:', created);
+          return;
+        }
+        setPlans([...plans, { ...created, id: String(created.id), features: created.features }]);
+        toast.success("Plan added");
+      }
+      setShowPlanModal(false);
+      setEditingPlan(null);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save plan");
+      console.error('Save plan error:', err);
+    }
+  };
+
+  const handleAddFeature = () => {
+    if (!editingPlan || typeof editingPlan !== 'object' || !newFeature.trim()) return;
+    setEditingPlan({ ...editingPlan, features: [...(editingPlan.features || []), newFeature.trim()] });
+    setNewFeature("");
+  };
+
+  const handleEditFeature = (idx: number) => {
+    if (!editingPlan || typeof editingPlan !== 'object') return;
+    setFeatureEditIdx(idx);
+    setFeatureEditValue(editingPlan.features[idx]);
+  };
+
+  const handleSaveFeatureEdit = () => {
+    if (!editingPlan || typeof editingPlan !== 'object' || featureEditIdx === null) return;
+    const updated = [...editingPlan.features];
+    updated[featureEditIdx] = featureEditValue;
+    setEditingPlan({ ...editingPlan, features: updated });
+    setFeatureEditIdx(null);
+    setFeatureEditValue("");
+  };
+
+  const handleDeleteFeature = (idx: number) => {
+    if (!editingPlan || typeof editingPlan !== 'object') return;
+    const updated = [...editingPlan.features];
+    updated.splice(idx, 1);
+    setEditingPlan({ ...editingPlan, features: updated });
+  };
+
+  // Convert plans object to array if needed
+  const planArray: Plan[] = Array.isArray(plans)
+    ? plans.map(p => ({
+        id: p.id,
+        name: typeof p.name === 'string' ? p.name : '',
+        price: typeof p.price === 'number' ? p.price : 0,
+        features: Array.isArray(p.features) ? p.features : [],
+        session_limit: typeof p.session_limit === 'number' ? p.session_limit : 0,
+      }))
+    : Object.entries(plans).map(([key, value]) => {
+        const v = value as any;
+        return {
+          id: key,
+          name: typeof v.name === 'string' ? v.name : '',
+          price: typeof v.price === 'number' ? v.price : 0,
+          features: Array.isArray(v.features) ? v.features : [],
+          session_limit: typeof v.session_limit === 'number' ? v.session_limit : 0,
+        };
+      });
 
   if (loading) {
     return (
@@ -268,51 +458,105 @@ export default function PaymentsPage() {
         </CardContent>
       </Card>
 
-      {/* Subscription Plans */}
+      {/* Subscription Plans Management */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Subscription Plans</CardTitle>
+          <Button onClick={handleAddPlan}>Add Plan</Button>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="border rounded-lg p-6 text-center">
-              <h3 className="text-lg font-semibold mb-2">Basic</h3>
-              <div className="text-3xl font-bold text-gray-900 mb-4">$0</div>
-              <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                <li>• Basic wall customization</li>
-                <li>• Limited templates</li>
-                <li>• Community support</li>
-              </ul>
-              <div className="text-sm text-gray-500">Free tier</div>
+          {loadingPlans ? (
+            <div>Loading plans...</div>
+          ) : plans.length === 0 ? (
+            <div>No plans found.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {plans.map((plan) => (
+                <div key={plan.id} className="border rounded-lg p-6 text-center relative group bg-white">
+                  <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button size="sm" variant="outline" onClick={() => handleEditPlan(plan)}>Edit</Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDeletePlan(plan.id)}>Delete</Button>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">{plan.name}</h3>
+                  <div className="text-3xl font-bold text-gray-900 mb-2">{formatINR(Number(plan.price))}</div>
+                  <div className="text-gray-600 mb-2">Session Limit: {plan.session_limit}</div>
+                  <ul className="text-sm text-gray-600 space-y-2 mb-6">
+                    {(plan.features || []).map((b: string, i: number) => (
+                      <li key={i}>• {b}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-
-            <div className="border rounded-lg p-6 text-center bg-blue-50 border-blue-200">
-              <h3 className="text-lg font-semibold mb-2">Pro</h3>
-              <div className="text-3xl font-bold text-gray-900 mb-4">$9.99</div>
-              <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                <li>• Advanced customization</li>
-                <li>• Premium templates</li>
-                <li>• Priority support</li>
-                <li>• Export high quality</li>
-              </ul>
-              <div className="text-sm text-blue-600 font-medium">Most popular</div>
-            </div>
-
-            <div className="border rounded-lg p-6 text-center">
-              <h3 className="text-lg font-semibold mb-2">Premium</h3>
-              <div className="text-3xl font-bold text-gray-900 mb-4">$19.99</div>
-              <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                <li>• Unlimited customization</li>
-                <li>• All templates</li>
-                <li>• 24/7 support</li>
-                <li>• AI-powered features</li>
-                <li>• Commercial license</li>
-              </ul>
-              <div className="text-sm text-gray-500">Enterprise</div>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
+      {/* Plan Modal */}
+      <Dialog open={showPlanModal} onOpenChange={setShowPlanModal}>
+        <DialogContent className="max-w-lg mx-auto">
+          <DialogHeader>
+            <DialogTitle>{editingPlan?.id ? "Edit Plan" : "Add Plan"}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <Input
+              placeholder="Plan Name"
+              value={editingPlan?.name || ""}
+              onChange={e => setEditingPlan({ ...editingPlan, name: e.target.value })}
+            />
+            <Input
+              type="number"
+              placeholder="Price"
+              value={editingPlan?.price || 0}
+              onChange={e => setEditingPlan({ ...editingPlan, price: Number(e.target.value) })}
+            />
+            <Input
+              type="number"
+              placeholder="Session Limit"
+              value={editingPlan?.session_limit || 0}
+              onChange={e => setEditingPlan({ ...editingPlan, session_limit: Number(e.target.value) })}
+            />
+            <div>
+              <div className="font-semibold mb-2">Features</div>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  placeholder="Add feature"
+                  value={newFeature}
+                  onChange={e => setNewFeature(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleAddFeature(); }}
+                />
+                <Button onClick={handleAddFeature}>Add</Button>
+              </div>
+              <ul className="space-y-2">
+                {(editingPlan?.features || []).map((b: string, i: number) => (
+                  <li key={i} className="flex items-center gap-2">
+                    {featureEditIdx === i ? (
+                      <>
+                        <Input
+                          value={featureEditValue}
+                          onChange={e => setFeatureEditValue(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') handleSaveFeatureEdit(); }}
+                        />
+                        <Button size="sm" onClick={handleSaveFeatureEdit}>Save</Button>
+                        <Button size="sm" variant="destructive" onClick={() => setFeatureEditIdx(null)}>Cancel</Button>
+                      </>
+                    ) : (
+                      <>
+                        <span>{b}</span>
+                        <Button size="sm" variant="outline" onClick={() => handleEditFeature(i)}>Edit</Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleDeleteFeature(i)}>Delete</Button>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setShowPlanModal(false)}>Cancel</Button>
+              <Button onClick={handleSavePlan}>{editingPlan?.id ? "Update" : "Add"} Plan</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Quick Actions */}
       <Card>

@@ -8,6 +8,8 @@ const aiRoutes = require('./routes/ai');
 const adminRoutes = require('./routes/admin');
 const emailRoutes = require('./routes/email');
 const sharedRoutes = require('./routes/shared');
+const plansRoutes = require('./routes/plans');
+const decorsRoutes = require('./routes/decors');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -28,6 +30,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/email', emailRoutes);
 // Shared routes
 app.use('/api/shared', sharedRoutes);
+// Plans routes
+app.use('/api/plans', plansRoutes);
+// Decors routes
+app.use('/api', decorsRoutes);
 
 app.get('/', (req, res) => {
   res.send('Wallora Server Running');
