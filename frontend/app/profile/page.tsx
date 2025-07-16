@@ -7,13 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Settings, Clock, Palette, LogOut, Home, ChevronDown } from "lucide-react";
+import { User, Settings, Clock, Palette, LogOut, Home, ChevronDown, CheckCircle, Star, Award } from "lucide-react";
 import ProfileForm from "@/components/auth/ProfileForm";
 import ProfilePhotoUpload from "@/components/auth/ProfilePhotoUpload";
 import SessionList from '../../components/profile/SessionList';
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import Footer from "@/components/shared/Footer";
 import { authenticatedFetch } from "@/lib/auth";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useSearchParams } from "next/navigation";
 
 const API_URL = "http://localhost:4000/api";
 
@@ -22,6 +24,15 @@ interface Session {
   id: string;
   name: string;
   updatedAt: string;
+}
+
+// Add Plan interface for type safety
+interface Plan {
+  id: number;
+  name: string;
+  price: number;
+  features: string[];
+  session_limit: number;
 }
 
 const fetchUserIdByEmail = async (email: string): Promise<string | null> => {
@@ -43,6 +54,9 @@ const fetchUserSessions = async (userId: string): Promise<Session[]> => {
   }));
 };
 
+// Add a helper for INR formatting
+const formatINR = (amount: number) => amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+
 export default function ProfilePage() {
   const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -50,6 +64,11 @@ export default function ProfilePage() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState<string | undefined>(undefined);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [plan, setPlan] = useState<string>("");
+  const [updatingPlan, setUpdatingPlan] = useState(false);
+  const [planError, setPlanError] = useState("");
+  const [planDetails, setPlanDetails] = useState<Plan[]>([]);
   
   // Get user email for avatar fallback
   let email = "";
@@ -125,6 +144,42 @@ export default function ProfilePage() {
     return "Basic";
   };
 
+  // Fetch user's plan (add to useEffect)
+  useEffect(() => {
+    const fetchPlan = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_URL}/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user && data.user.plan) setPlan(data.user.plan);
+        }
+      } catch {}
+    };
+    fetchPlan();
+  }, []);
+
+  useEffect(() => {
+    // Fetch plan details from backend
+    fetch('http://localhost:4000/api/plans')
+      .then(res => res.json())
+      .then(data => {
+        const plans = Array.isArray(data.plans) ? data.plans : [];
+        // Ensure features is always an array
+        const normalized = plans.map((p: any) => ({
+          ...p,
+          features: Array.isArray(p.features)
+            ? p.features
+            : (typeof p.features === 'string' ? JSON.parse(p.features) : []),
+        }));
+        setPlanDetails(normalized);
+      })
+      .catch(() => setPlanDetails([]));
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userEmail");
@@ -140,6 +195,64 @@ export default function ProfilePage() {
   const handlePhotoUpdate = (photoPath: string) => {
     setProfilePhoto(photoPath);
   };
+
+  // Add handler to update plan
+  const handlePlanSelect = async (selectedPlan: string) => {
+    setPlanError("");
+    setPlanSuccess("");
+    // Downgrade check
+    if (planDetails && planDetails.length > 0) {
+      const currentPlan = planDetails.find(p => p.name.toLowerCase() === selectedPlan);
+      if (currentPlan && sessions.length > currentPlan.session_limit) {
+        setPendingPlan(selectedPlan);
+        setShowConfirmDowngrade(true);
+        return;
+      }
+    }
+    await doPlanUpdate(selectedPlan);
+  };
+
+  const doPlanUpdate = async (selectedPlan: string) => {
+    setUpdatingPlan(true);
+    setPlanError("");
+    setPlanSuccess("");
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`${API_URL}/update-plan`, {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan: selectedPlan }),
+      });
+      if (res.ok) {
+        setPlan(selectedPlan);
+        setShowPlanModal(false);
+        setPlanSuccess("Plan updated successfully!");
+        setShowConfirmDowngrade(false);
+      } else {
+        setPlanError("Failed to update plan.");
+      }
+    } catch {
+      setPlanError("Network error.");
+    } finally {
+      setUpdatingPlan(false);
+    }
+  };
+
+  // Plan limits and benefits
+  // Remove static PLAN_LIMITS and PLAN_BENEFITS
+
+  const [showConfirmDowngrade, setShowConfirmDowngrade] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<string>("");
+  const [planSuccess, setPlanSuccess] = useState("");
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  useEffect(() => {
+    if (searchParams && searchParams.get('showPlans') === '1') {
+      setShowPlanModal(true);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] relative overflow-x-hidden"> {/* Light gold/cream background */}
@@ -165,11 +278,11 @@ export default function ProfilePage() {
               <div className="lg:col-span-1">
                 <Card className="bg-[#FFF9F3] border border-gray-200 shadow rounded-2xl overflow-hidden"> {/* Soft light gold/cream background */}
                   <div className="p-6 flex flex-col items-center justify-center">
-                    <ProfilePhotoUpload
-                      currentPhoto={profilePhoto}
-                      userEmail={email}
-                      onPhotoUpdate={handlePhotoUpdate}
-                    />
+                      <ProfilePhotoUpload
+                        currentPhoto={profilePhoto}
+                        userEmail={email}
+                        onPhotoUpdate={handlePhotoUpdate}
+                      />
                     <div className="text-center mt-2">
                       <h2 className="text-2xl font-bold mb-1 text-gray-800">Welcome Back!</h2>
                       <p className="text-gray-500">{email}</p>
@@ -187,8 +300,8 @@ export default function ProfilePage() {
                   <div className="p-6 flex items-center gap-3 border-b border-gray-100">
                     <div className="p-2 bg-gray-50 rounded-lg">
                       <Palette className="h-6 w-6 text-orange-400" />
-                    </div>
-                    <div>
+                      </div>
+                      <div>
                       <h2 className="text-2xl font-bold text-gray-800">Design Sessions</h2>
                       <p className="text-gray-500">Continue your creative projects</p>
                     </div>
@@ -234,7 +347,7 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#FFF9F3] text-gray-900 border border-gray-200 shadow rounded-2xl"> {/* Soft light gold/cream background */}
+              <Card className="bg-[#FFF9F3] text-gray-900 border border-gray-200 shadow rounded-2xl cursor-pointer" onClick={() => setShowPlanModal(true)}>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-white/30 rounded-lg">
@@ -243,7 +356,7 @@ export default function ProfilePage() {
                     <div>
                       <p className="text-[#C71585] text-sm">Account Status</p>
                       <p className="text-2xl font-bold">
-                        {loading ? "..." : getAccountStatus()}
+                        {loading ? "..." : plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : getAccountStatus()}
                       </p>
                     </div>
                   </div>
@@ -254,6 +367,62 @@ export default function ProfilePage() {
         </div>
       </div>
       <Footer />
+      {/* Plan Selection Modal */}
+      <Dialog open={showPlanModal} onOpenChange={setShowPlanModal}>
+        <DialogContent className="max-w-2xl mx-auto">
+          <DialogHeader>
+            <DialogTitle>Choose Your Plan</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="mb-2 text-center text-gray-700 text-lg font-semibold">
+              Select the plan that best fits your needs
+            </div>
+            <div className="flex flex-col md:flex-row gap-4 justify-center items-stretch">
+              {Array.isArray(planDetails) && planDetails.length > 0 ? (
+                planDetails
+                  .sort((a, b) => a.price - b.price)
+                  .map((p) => (
+                    <div
+                      key={p.id}
+                      className={`flex-1 border-2 rounded-2xl p-4 shadow-lg transition-transform duration-200 bg-white relative group cursor-pointer ${plan === p.name.toLowerCase() ? `border-blue-500 scale-105 bg-blue-50` : 'border-gray-200 hover:scale-105 hover:shadow-2xl'}`}
+                      onClick={() => !updatingPlan && plan !== p.name.toLowerCase() && handlePlanSelect(p.name.toLowerCase())}
+                    >
+                      {plan === p.name.toLowerCase() && (
+                        <span className="absolute top-4 right-4 bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow">Current Plan</span>
+                      )}
+                      <h3 className="text-2xl font-bold mb-2 text-blue-700 flex items-center gap-2">{p.name}</h3>
+                      <div className="text-3xl font-bold mb-2">{formatINR(Number(p.price))}</div>
+                      <div className="text-gray-600 mb-2">Session Limit: {p.session_limit}</div>
+                      <ul className="text-base mb-2 list-none space-y-2">
+                        {(Array.isArray(p.features) ? p.features : []).map((b: string, i: number) => (
+                          <li key={i} className="flex items-center gap-2 text-blue-800"><CheckCircle className="h-5 w-5 text-blue-400" />{b}</li>
+                        ))}
+                      </ul>
+                      <div className="mt-auto">
+                        {plan !== p.name.toLowerCase() && <Button className="w-full" disabled={updatingPlan}>Choose {p.name}</Button>}
+                      </div>
+                    </div>
+                  ))
+              ) : (
+                <div className="text-center w-full">No plans available.</div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Downgrade confirmation dialog */}
+      <Dialog open={showConfirmDowngrade} onOpenChange={setShowConfirmDowngrade}>
+        <DialogContent className="max-w-sm mx-auto">
+          <DialogHeader>
+            <DialogTitle>Confirm Downgrade</DialogTitle>
+          </DialogHeader>
+          <div className="text-gray-700 mb-4">
+            You currently have <span className="font-semibold">{sessions.length}</span> sessions, but the <span className="font-semibold">{pendingPlan.charAt(0).toUpperCase() + pendingPlan.slice(1)}</span> plan allows only <span className="font-semibold">{planDetails && planDetails.length > 0 ? planDetails.find(p => p.name.toLowerCase() === pendingPlan)?.session_limit || 3 : 3}</span>.<br />
+            Please delete or export your sessions to downgrade.
+          </div>
+          <Button className="w-full" variant="outline" onClick={() => setShowConfirmDowngrade(false)}>Cancel</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

@@ -39,7 +39,7 @@ interface User {
   name: string;
   email: string;
   role: string;
-  subscription_status: string;
+  plan: string;
   created_at: string;
   last_login: string | null;
   session_count: number;
@@ -185,16 +185,16 @@ export default function UsersPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (plan: string) => {
+    switch (plan) {
       case 'premium':
         return <Badge variant="default" className="bg-purple-600"><Crown className="h-3 w-3 mr-1" />Premium</Badge>;
-      case 'pro':
-        return <Badge variant="default" className="bg-blue-600">Pro</Badge>;
+      case 'ultra':
+        return <Badge variant="default" className="bg-indigo-600"><Crown className="h-3 w-3 mr-1" />Ultra</Badge>;
       case 'basic':
         return <Badge variant="outline">Basic</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">{plan}</Badge>;
     }
   };
 
@@ -310,7 +310,7 @@ export default function UsersPage() {
                       {getRoleBadge(user.role)}
                     </td>
                     <td className="py-4 px-4">
-                      {getStatusBadge(user.subscription_status)}
+                      {getStatusBadge(user.plan)}
                     </td>
                     <td className="py-4 px-4">
                       <span className="font-medium">{user.session_count}</span>
@@ -416,7 +416,7 @@ export default function UsersPage() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Subscription Status</label>
-                <div className="mt-1">{getStatusBadge(selectedUser.subscription_status)}</div>
+                <div className="mt-1">{getStatusBadge(selectedUser.plan)}</div>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700">Sessions Created</label>
@@ -478,18 +478,18 @@ export default function UsersPage() {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Subscription Status</label>
+                <label className="text-sm font-medium text-gray-700">Plan</label>
                 <Select 
-                  value={editingUser.subscription_status} 
-                  onValueChange={(value) => setEditingUser({...editingUser, subscription_status: value})}
+                  value={editingUser.plan} 
+                  onValueChange={(value) => setEditingUser({...editingUser, plan: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="basic">Basic</SelectItem>
-                    <SelectItem value="pro">Pro</SelectItem>
                     <SelectItem value="premium">Premium</SelectItem>
+                    <SelectItem value="ultra">Ultra</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -498,7 +498,7 @@ export default function UsersPage() {
                   onClick={() => handleUpdateUser(editingUser)}
                   className="flex-1"
                 >
-                  Update User
+                  Save Changes
                 </Button>
                 <Button 
                   variant="outline" 

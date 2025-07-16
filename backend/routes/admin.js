@@ -35,7 +35,7 @@ router.get('/dashboard', async (req, res) => {
     const [premiumUsers] = await pool.execute(`
       SELECT COUNT(*) as count 
       FROM users 
-      WHERE subscription_status = 'premium'
+      WHERE plan = 'premium'
     `);
 
     res.json({
@@ -70,7 +70,7 @@ router.get('/users', async (req, res) => {
     }
     
     if (status) {
-      whereClause += ' AND u.subscription_status = ?';
+      whereClause += ' AND u.plan = ?';
       params.push(status);
     }
     
@@ -82,7 +82,7 @@ router.get('/users', async (req, res) => {
     // Get users with session count
     const [users] = await pool.execute(`
       SELECT 
-        u.id, u.name, u.email, u.role, u.subscription_status, 
+        u.id, u.name, u.email, u.role, u.plan, 
         u.created_at, u.last_login,
         COUNT(s.id) as session_count
       FROM users u
@@ -122,7 +122,7 @@ router.get('/users/:userId', async (req, res) => {
     
     // Get user details
     const [users] = await pool.execute(`
-      SELECT id, name, email, role, subscription_status, updated_at, last_login, profile_photo
+      SELECT id, name, email, role, plan, updated_at, last_login, profile_photo
       FROM users WHERE id = ?
     `, [userId]);
     
@@ -152,7 +152,7 @@ router.get('/users/:userId', async (req, res) => {
 router.put('/users/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { role, subscription_status, is_active } = req.body;
+    const { role, plan, is_active } = req.body;
     
     const updates = [];
     const params = [];
@@ -162,9 +162,9 @@ router.put('/users/:userId', async (req, res) => {
       params.push(role);
     }
     
-    if (subscription_status !== undefined) {
-      updates.push('subscription_status = ?');
-      params.push(subscription_status);
+    if (plan !== undefined) {
+      updates.push('plan = ?');
+      params.push(plan);
     }
     
     if (is_active !== undefined) {
@@ -261,10 +261,10 @@ router.get('/analytics', async (req, res) => {
     // Subscription distribution
     const [subscriptionStats] = await pool.execute(`
       SELECT 
-        subscription_status,
+        plan,
         COUNT(*) as count
       FROM users 
-      GROUP BY subscription_status
+      GROUP BY plan
     `);
     
     res.json({
@@ -284,7 +284,7 @@ router.get('/export/users', async (req, res) => {
   try {
     const [users] = await pool.execute(`
       SELECT 
-        id, name, email, role, subscription_status, 
+        id, name, email, role, plan, 
         last_login,
         (SELECT COUNT(*) FROM edit_sessions WHERE user_id = users.id) as session_count
       FROM users
@@ -296,9 +296,9 @@ router.get('/export/users', async (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="users-export.csv"');
     
     // Create CSV content
-    const csvHeader = 'ID,Name,Email,Role,Subscription Status,Last Login,Session Count\n';
+    const csvHeader = 'ID,Name,Email,Role,Plan,Last Login,Session Count\n';
     const csvContent = users.map(user => 
-      `${user.id},"${user.name}","${user.email}","${user.role}","${user.subscription_status}","${user.last_login}",${user.session_count}`
+      `${user.id},"${user.name}","${user.email}","${user.role}","${user.plan}","${user.last_login}",${user.session_count}`
     ).join('\n');
     
     res.send(csvHeader + csvContent);

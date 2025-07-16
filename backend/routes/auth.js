@@ -210,7 +210,7 @@ router.post('/verify-password', async (req, res) => {
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const [users] = await pool.execute(
-      'SELECT id, name, email, profile_photo, role, subscription_status, is_active FROM users WHERE id = ?',
+      'SELECT id, name, email, profile_photo, role, subscription_status, is_active, plan FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -311,6 +311,22 @@ router.get('/users', authenticateToken, async (req, res) => {
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch users' });
+  }
+});
+
+// Update user plan endpoint
+router.post('/update-plan', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { plan } = req.body;
+    if (!plan || !['premium', 'ultra'].includes(plan)) {
+      return res.status(400).json({ message: 'Invalid plan' });
+    }
+    await pool.execute('UPDATE users SET plan = ? WHERE id = ?', [plan, userId]);
+    res.json({ message: 'Plan updated successfully', plan });
+  } catch (error) {
+    console.error('Update plan error:', error);
+    res.status(500).json({ message: 'Failed to update plan' });
   }
 });
 
