@@ -48,7 +48,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     // Verify admin status
     const verifyAdmin = async () => {
       try {
-        const response = await fetch('http://localhost:4000/api/profile', {
+        const response = await fetch('http://localhost:4000/api/auth/profile', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

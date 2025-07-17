@@ -157,7 +157,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
       const email = localStorage.getItem('userEmail');
       if (!email) return;
       // Get userId
-      const userIdRes = await fetch(`http://localhost:4000/api/userid-by-email/${encodeURIComponent(email)}`);
+      const userIdRes = await fetch(`http://localhost:4000/api/auth/userid-by-email/${encodeURIComponent(email)}`);
       const userIdData = await userIdRes.json();
       const userId = userIdData.userId;
       // Get session count
@@ -165,7 +165,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
       const sessionsData = await sessionsRes.json();
       setSessionCount(Array.isArray(sessionsData) ? sessionsData.length : 0);
       // Get plan
-      const profileRes = await fetch(`http://localhost:4000/api/profile`, {
+      const profileRes = await fetch(`http://localhost:4000/api/auth/profile`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const profileData = await profileRes.json();

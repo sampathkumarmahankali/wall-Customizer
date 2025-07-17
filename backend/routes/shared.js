@@ -47,12 +47,35 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.get('/session/:sessionId', authenticateToken, async (req, res) => {
   try {
     const { sessionId } = req.params;
+    const userId = req.user.id;
+    // First, try to find a shared session (public/private)
     const [rows] = await pool.query(
       "SELECT * FROM shared_sessions WHERE session_id = ? AND (type = 'public' OR type = 'private') LIMIT 1",
       [sessionId]
     );
-    if (rows.length === 0) return res.status(404).json({ error: 'No public/private share found for this session' });
-    res.json(rows[0]);
+    if (rows.length > 0) {
+      return res.json(rows[0]);
+    }
+    // If not found, check if the requesting user is the session creator
+    const [sessionRows] = await pool.query(
+      'SELECT es.id, es.name, es.data, es.updated_at, es.user_id, u.email as creatorEmail FROM edit_sessions es JOIN users u ON es.user_id = u.id WHERE es.id = ?',
+      [sessionId]
+    );
+    if (sessionRows.length === 0) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    const session = sessionRows[0];
+    if (session.user_id !== userId) {
+      return res.status(403).json({ error: 'You do not have access to this session' });
+    }
+    let data = null;
+    try {
+      data = JSON.parse(session.data.toString('utf-8'));
+    } catch (e) {
+      data = null;
+    }
+    // Return the same structure as /session/:sessionId in session.js
+    return res.json({ id: session.id, name: session.name, data, updated_at: session.updated_at, user_id: session.user_id, creatorEmail: session.creatorEmail });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error', details: err.message });

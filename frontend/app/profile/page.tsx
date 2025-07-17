@@ -36,7 +36,7 @@ interface Plan {
 }
 
 const fetchUserIdByEmail = async (email: string): Promise<string | null> => {
-  const res = await fetch(`${API_URL}/userid-by-email/${encodeURIComponent(email)}`);
+  const res = await fetch(`${API_URL}/auth/userid-by-email/${encodeURIComponent(email)}`);
   if (!res.ok) return null;
   const data = await res.json();
   return data.userId;
@@ -94,7 +94,7 @@ export default function ProfilePage() {
         // Fetch profile photo and role
         const token = localStorage.getItem("token");
         if (token) {
-          const profileResponse = await fetch(`${API_URL}/profile`, {
+          const profileResponse = await fetch(`${API_URL}/auth/profile`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export default function ProfilePage() {
       const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        const res = await fetch(`${API_URL}/profile`, {
+        const res = await fetch(`${API_URL}/auth/profile`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
