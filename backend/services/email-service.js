@@ -171,6 +171,27 @@ class EmailService {
       throw error;
     }
   }
+
+  /**
+   * Send email verification code
+   */
+  async sendVerificationCode(userEmail, userName, code) {
+    try {
+      const template = emailTemplates.verificationCode(userName, code);
+      const msg = {
+        to: userEmail,
+        from: this.config.from.email,
+        subject: template.subject,
+        html: template.html
+      };
+      const response = await this.sgMail.send(msg);
+      console.log('Verification code email sent successfully:', response[0].statusCode);
+      return { success: true, messageId: response[0].headers['x-message-id'] };
+    } catch (error) {
+      console.error('Error sending verification code email:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new EmailService(); 

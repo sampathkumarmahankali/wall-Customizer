@@ -22,17 +22,17 @@ const emailConfig = {
 // Email templates (fallback if SendGrid templates are not used)
 const emailTemplates = {
   welcome: (userName) => ({
-    subject: 'Welcome to Wallora! 🎨',
+    subject: 'Welcome to MIALTER! 🎨',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
-          <h1 style="margin: 0; font-size: 32px;">Welcome to Wallora!</h1>
+          <h1 style="margin: 0; font-size: 32px;">Welcome to MIALTER!</h1>
           <p style="margin: 10px 0; font-size: 18px;">Your creative journey starts here</p>
         </div>
         <div style="padding: 40px; background: #f8f9fa;">
           <h2 style="color: #333; margin-bottom: 20px;">Hello ${userName}! 👋</h2>
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            Welcome to Wallora, your ultimate wall customization platform! We're excited to have you on board.
+            Welcome to MIALTER, your ultimate wall customization platform! We're excited to have you on board.
           </p>
           <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #333; margin-bottom: 15px;">🎨 What you can do:</h3>
@@ -54,14 +54,14 @@ const emailTemplates = {
           </p>
         </div>
         <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 12px;">
-          <p>© 2024 Wallora. All rights reserved.</p>
+          <p>© 2024 MIALTER. All rights reserved.</p>
         </div>
       </div>
     `
   }),
 
   passwordReset: (resetLink, userName) => ({
-    subject: 'Reset Your Wallora Password',
+    subject: 'Reset Your MIALTER Password',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
@@ -71,7 +71,7 @@ const emailTemplates = {
         <div style="padding: 40px; background: #f8f9fa;">
           <h2 style="color: #333; margin-bottom: 20px;">Hello ${userName},</h2>
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            We received a request to reset your password for your Wallora account.
+            We received a request to reset your password for your MIALTER account.
           </p>
           <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
             <a href="${resetLink}" 
@@ -90,24 +90,24 @@ const emailTemplates = {
           </div>
         </div>
         <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 12px;">
-          <p>© 2024 Wallora. All rights reserved.</p>
+          <p>© 2024 MIALTER. All rights reserved.</p>
         </div>
       </div>
     `
   }),
 
   activityAlert: (userName, activityType, activityDetails) => ({
-    subject: `New Activity on Wallora - ${activityType}`,
+    subject: `New Activity on MIALTER - ${activityType}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
           <h1 style="margin: 0; font-size: 32px;">Activity Alert</h1>
-          <p style="margin: 10px 0; font-size: 18px;">Your wall design activity</p>
+          <p style="margin: 10px 0; font-size: 18px;">Your MIALTER activity</p>
         </div>
         <div style="padding: 40px; background: #f8f9fa;">
           <h2 style="color: #333; margin-bottom: 20px;">Hello ${userName},</h2>
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            We noticed some activity on your Wallora account that you might want to know about.
+            We noticed some activity on your MIALTER account that you might want to know about.
           </p>
           <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #333; margin-bottom: 15px;">📊 Activity Summary:</h3>
@@ -118,29 +118,29 @@ const emailTemplates = {
           <div style="text-align: center; margin: 30px 0;">
             <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/profile" 
                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">
-              View Your Profile
+              View Your MIALTER Profile
             </a>
           </div>
         </div>
         <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 12px;">
-          <p>© 2024 Wallora. All rights reserved.</p>
+          <p>© 2024 MIALTER. All rights reserved.</p>
         </div>
       </div>
     `
   }),
 
   newsletter: (userName, newsletterContent) => ({
-    subject: 'Wallora Newsletter - Latest Updates & Tips',
+    subject: 'MIALTER Newsletter - Latest Updates & Tips',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; color: white;">
-          <h1 style="margin: 0; font-size: 32px;">Wallora Newsletter</h1>
+          <h1 style="margin: 0; font-size: 32px;">MIALTER Newsletter</h1>
           <p style="margin: 10px 0; font-size: 18px;">Stay updated with the latest features</p>
         </div>
         <div style="padding: 40px; background: #f8f9fa;">
           <h2 style="color: #333; margin-bottom: 20px;">Hello ${userName},</h2>
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            Here's what's new at Wallora this week!
+            Here's what's new at MIALTER this week!
           </p>
           <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
             ${newsletterContent}
@@ -153,10 +153,37 @@ const emailTemplates = {
           </div>
         </div>
         <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 12px;">
-          <p>© 2024 Wallora. All rights reserved.</p>
+          <p>© 2024 MIALTER. All rights reserved.</p>
           <p style="margin-top: 10px;">
             <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/unsubscribe" style="color: #ccc;">Unsubscribe</a>
           </p>
+        </div>
+      </div>
+    `
+  }),
+
+  verificationCode: (userName, code) => ({
+    subject: 'Verify your email for MIALTER',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #FFD700 0%, #764ba2 100%); padding: 40px; text-align: center; color: #333;">
+          <h1 style="margin: 0; font-size: 32px;">Email Verification</h1>
+          <p style="margin: 10px 0; font-size: 18px;">Complete your registration</p>
+        </div>
+        <div style="padding: 40px; background: #f8f9fa; text-align: center;">
+          <h2 style="color: #333; margin-bottom: 20px;">Hello ${userName || ''},</h2>
+          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+            Thank you for registering with MIALTER! Please verify your email address by entering the following 6-digit code:
+          </p>
+          <div style="background: #fffbe6; padding: 24px; border-radius: 8px; display: inline-block; margin: 20px 0;">
+            <span style="font-size: 2.5rem; font-weight: bold; letter-spacing: 0.3em; color: #FFD700;">${code}</span>
+          </div>
+          <p style="color: #666; font-size: 14px; margin-top: 30px;">
+            This code will expire in 10 minutes. If you did not request this, please ignore this email.
+          </p>
+        </div>
+        <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 12px;">
+          <p>© 2024 MIALTER. All rights reserved.</p>
         </div>
       </div>
     `

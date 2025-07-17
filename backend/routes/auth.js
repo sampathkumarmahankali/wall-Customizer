@@ -32,28 +32,24 @@ router.post('/register', async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Insert new user
+    // Generate 6-digit verification code and expiry (10 min)
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const codeExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+    // Insert new user with verification code
     const [result] = await pool.execute(
-      'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-      [name, email, hashedPassword]
+      'INSERT INTO users (name, email, password, verification_code, code_expires_at, is_verified) VALUES (?, ?, ?, ?, ?, 0)',
+      [name, email, hashedPassword, code, codeExpiresAt]
     );
 
-    // Generate JWT token
-    const token = generateToken({
-      id: result.insertId,
-      email: email,
-      name: name
-    });
-
-    // Send welcome email (async, don't wait for it)
-    emailService.sendWelcomeEmail(email, name).catch(error => {
-      console.error('Error sending welcome email:', error);
+    // Send verification code email
+    emailService.sendVerificationCode(email, name, code).catch(error => {
+      console.error('Error sending verification code email:', error);
     });
 
     res.status(201).json({
-      message: 'User registered successfully',
+      message: 'User registered successfully. Please check your email for the verification code.',
       userId: result.insertId,
-      token: token,
       user: {
         id: result.insertId,
         name: name,
@@ -88,6 +84,11 @@ router.post('/login', async (req, res) => {
     }
 
     const user = users[0];
+
+    // Only allow login if user is verified
+    if (!user.is_verified) {
+      return res.status(403).json({ message: 'Please verify your email before logging in.' });
+    }
 
     // Verify password using bcrypt
     const isValidPassword = await bcrypt.compare(password, user.password);
@@ -327,6 +328,90 @@ router.post('/update-plan', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Update plan error:', error);
     res.status(500).json({ message: 'Failed to update plan' });
+  }
+});
+
+// Email verification endpoint
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ message: 'Email and code are required' });
+    }
+    // Find user by email
+    const [users] = await pool.execute(
+      'SELECT id, verification_code, code_expires_at, is_verified FROM users WHERE email = ?',
+      [email]
+    );
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const user = users[0];
+    if (user.is_verified) {
+      return res.status(400).json({ message: 'User already verified' });
+    }
+    if (!user.verification_code || !user.code_expires_at) {
+      return res.status(400).json({ message: 'No verification code found. Please register again.' });
+    }
+    if (user.verification_code !== code) {
+      return res.status(400).json({ message: 'Invalid verification code' });
+    }
+    if (new Date() > new Date(user.code_expires_at)) {
+      return res.status(400).json({ message: 'Verification code expired' });
+    }
+    // Mark user as verified
+    await pool.execute(
+      'UPDATE users SET is_verified = 1, verification_code = NULL, code_expires_at = NULL WHERE email = ?',
+      [email]
+    );
+    // Send welcome email after successful verification
+    emailService.sendWelcomeEmail(email, user.name || email).catch(error => {
+      console.error('Error sending welcome email after verification:', error);
+    });
+    res.json({ message: 'Email verified successfully' });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(500).json({ message: 'Email verification failed' });
+  }
+});
+
+// Check if user is verified
+router.get('/check-verified', async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ message: 'Email required' });
+  const [users] = await pool.execute('SELECT is_verified FROM users WHERE email = ?', [email]);
+  if (users.length === 0) return res.status(404).json({ message: 'User not found' });
+  res.json({ is_verified: !!users[0].is_verified });
+});
+
+// Resend verification code endpoint
+router.post('/resend-code', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    // Find user
+    const [users] = await pool.execute('SELECT id, name, is_verified FROM users WHERE email = ?', [email]);
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const user = users[0];
+    if (user.is_verified) {
+      return res.status(400).json({ message: 'User is already verified' });
+    }
+    // Generate new code and expiry
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const codeExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    await pool.execute('UPDATE users SET verification_code = ?, code_expires_at = ? WHERE email = ?', [code, codeExpiresAt, email]);
+    // Send code
+    emailService.sendVerificationCode(email, user.name || email, code).catch(error => {
+      console.error('Error resending verification code:', error);
+    });
+    res.json({ message: 'Verification code resent successfully' });
+  } catch (error) {
+    console.error('Resend code error:', error);
+    res.status(500).json({ message: 'Failed to resend verification code' });
   }
 });
 

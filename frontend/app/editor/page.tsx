@@ -12,6 +12,7 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(!!sessionId);
   const [shareType, setShareType] = useState<string | null>(null);
   const [editors, setEditors] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if user is logged in
@@ -36,12 +37,21 @@ export default function EditorPage() {
       fetch(`http://localhost:4000/api/shared/session/${sessionId}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       })
-        .then(res => res.ok ? res.json() : null)
+        .then(res => {
+          if (res.status === 403) {
+            setError('You do not have permission to edit this session.');
+            setShareType(null);
+            setEditors([]);
+            setLoading(false);
+            return null;
+          }
+          return res.ok ? res.json() : null;
+        })
         .then(data => {
           if (data) {
             setShareType(data.type);
             setEditors(Array.isArray(data.editors) ? data.editors : (data.editors ? JSON.parse(data.editors) : []));
-          } else {
+          } else if (!error) {
             setShareType(null);
             setEditors([]);
           }
@@ -54,23 +64,25 @@ export default function EditorPage() {
   }, [sessionId]);
 
   if (loading) return <div>Loading session...</div>;
+  if (error) return <div className="text-red-500 text-center font-semibold my-8">{error}</div>;
 
   // Get logged-in user id from localStorage
-  const loggedInUserId = localStorage.getItem("userId");
   let editable = false;
-  if (shareType === 'public') {
-    editable = true;
-  } else if (shareType === 'private') {
-    const loggedInUserEmail = localStorage.getItem('userEmail') || '';
-    // Allow edit if user is in editors OR is the creator
-    const sessionCreatorEmail = initialSettings?.creatorEmail || localStorage.getItem('userEmail') || '';
-    editable = editors.includes(loggedInUserEmail);
-  } else {
-    // Fallback: only the creator (by email) can edit
-    const loggedInUserEmail = localStorage.getItem('userEmail') || '';
-    // Fallback: use localStorage if creatorEmail is missing
-    const sessionCreatorEmail = initialSettings?.creatorEmail || localStorage.getItem('userEmail') || '';
-    editable = loggedInUserEmail && sessionCreatorEmail && loggedInUserEmail === sessionCreatorEmail;
+  if (!error) {
+    if (shareType === 'public') {
+      editable = true;
+    } else if (shareType === 'private') {
+      const loggedInUserEmail = localStorage.getItem('userEmail') || '';
+      // Allow edit if user is in editors OR is the creator
+      const sessionCreatorEmail = initialSettings?.creatorEmail || localStorage.getItem('userEmail') || '';
+      editable = editors.includes(loggedInUserEmail);
+    } else {
+      // Fallback: only the creator (by email) can edit
+      const loggedInUserEmail = localStorage.getItem('userEmail') || '';
+      // Fallback: use localStorage if creatorEmail is missing
+      const sessionCreatorEmail = initialSettings?.creatorEmail || localStorage.getItem('userEmail') || '';
+      editable = loggedInUserEmail && sessionCreatorEmail && loggedInUserEmail === sessionCreatorEmail;
+    }
   }
 
   return <WallEditor initialSettings={initialSettings} editable={editable} />;

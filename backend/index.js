@@ -10,6 +10,7 @@ const emailRoutes = require('./routes/email');
 const sharedRoutes = require('./routes/shared');
 const plansRoutes = require('./routes/plans');
 const decorsRoutes = require('./routes/decors');
+const pool = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -19,7 +20,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Auth routes
-app.use('/api', authRoutes);
+app.use('/api/auth', authRoutes);
 // Session routes
 app.use('/api', sessionRoutes);
 // AI routes
@@ -34,6 +35,20 @@ app.use('/api/shared', sharedRoutes);
 app.use('/api/plans', plansRoutes);
 // Decors routes
 app.use('/api', decorsRoutes);
+
+// Scheduled cleanup: delete unverified users whose code has expired
+setInterval(async () => {
+  try {
+    const [result] = await pool.execute(
+      "DELETE FROM users WHERE is_verified = 0 AND code_expires_at IS NOT NULL AND code_expires_at < NOW()"
+    );
+    if (result.affectedRows > 0) {
+      console.log(`[CLEANUP] Deleted ${result.affectedRows} unverified users with expired codes.`);
+    }
+  } catch (err) {
+    console.error('[CLEANUP ERROR] Failed to delete expired unverified users:', err);
+  }
+}, 5 * 60 * 1000); // Every 5 minutes
 
 app.get('/', (req, res) => {
   res.send('Wallora Server Running');
