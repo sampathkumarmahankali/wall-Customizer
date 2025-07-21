@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getAllSharedSessions, updateSharedSession, deleteSharedSession, getSharedSession } from '@/lib/shared';
+import { ClipboardCopy } from 'lucide-react';
 
 export default function SharedSettingsPage() {
   const [sessions, setSessions] = useState<any[]>([]);
@@ -23,6 +24,7 @@ export default function SharedSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -127,6 +129,16 @@ export default function SharedSettingsPage() {
     setDeleting(false);
   };
 
+  const handleCopyLink = (session: any) => {
+    const isEditable = session.type === 'public' || session.type === 'private';
+    const link = isEditable
+      ? `${window.location.origin}/editor?sessionId=${session.session_id}`
+      : `${window.location.origin}/altar/${session.session_id}?shared=1`;
+    navigator.clipboard.writeText(link);
+    setCopiedLink(session.id);
+    setTimeout(() => setCopiedLink(null), 2000);
+  };
+
   return (
     <div className="max-w-5xl mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold mb-8 text-gray-900">Shared Sessions Management</h1>
@@ -139,6 +151,7 @@ export default function SharedSettingsPage() {
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Last Edited At</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Created At</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Editors</th>
+              <th className="px-4 py-3"></th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
@@ -183,6 +196,17 @@ export default function SharedSettingsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <Button size="sm" variant="outline" onClick={() => handleManage(session.id)}>Manage</Button>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleCopyLink(session)}
+                      className="flex items-center gap-1"
+                    >
+                      <ClipboardCopy className="h-4 w-4" />
+                      {copiedLink === session.id ? 'Copied!' : 'Copy Link'}
+                    </Button>
                   </td>
                 </tr>
               ))

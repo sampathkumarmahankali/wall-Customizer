@@ -12,12 +12,13 @@ export default function HomePage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
+      const token = localStorage.getItem("token");
+      setIsLoggedIn(!!token);
     }
   }, []);
 
   const handleStart = () => {
-    if (typeof window !== "undefined" && localStorage.getItem("isLoggedIn") === "true") {
+    if (isLoggedIn) {
       router.push("/create");
     } else {
       router.push("/login");
@@ -29,13 +30,12 @@ export default function HomePage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userEmail");
+    localStorage.clear();
     window.location.reload();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col"> {/* Light gold/cream background */}
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col overflow-x-hidden"> {/* Light gold/cream background */}
       <div className="flex-1 flex items-center justify-center px-2 sm:px-4">
         <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left: Hero Text */}

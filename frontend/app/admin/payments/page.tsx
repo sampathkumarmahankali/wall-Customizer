@@ -206,7 +206,7 @@ export default function PaymentsPage() {
           }),
         });
         const text = await res.text();
-        let updated;
+        let updated: any;
         try { updated = JSON.parse(text); } catch { updated = text; }
         if (!res.ok) {
           toast.error(`Failed to update plan: ${res.status} ${res.statusText}`);
@@ -228,7 +228,7 @@ export default function PaymentsPage() {
           }),
         });
         const text = await res.text();
-        let created;
+        let created: any;
         try { created = JSON.parse(text); } catch { created = text; }
         if (!res.ok) {
           toast.error(`Failed to add plan: ${res.status} ${res.statusText}`);
@@ -506,19 +506,19 @@ export default function PaymentsPage() {
               <Input
                 placeholder="Plan Name"
                 value={editingPlan?.name || ""}
-                onChange={e => setEditingPlan({ ...editingPlan, name: e.target.value })}
+                onChange={e => setEditingPlan({ ...editingPlan!, name: e.target.value })}
               />
               <Input
                 type="number"
                 placeholder="Price"
                 value={editingPlan?.price || 0}
-                onChange={e => setEditingPlan({ ...editingPlan, price: Number(e.target.value) })}
+                onChange={e => setEditingPlan({ ...editingPlan!, price: Number(e.target.value) })}
               />
               <Input
                 type="number"
                 placeholder="Session Limit"
                 value={editingPlan?.session_limit || 0}
-                onChange={e => setEditingPlan({ ...editingPlan, session_limit: Number(e.target.value) })}
+                onChange={e => setEditingPlan({ ...editingPlan!, session_limit: Number(e.target.value) })}
               />
               <div>
                 <div className="font-semibold mb-2">Features</div>

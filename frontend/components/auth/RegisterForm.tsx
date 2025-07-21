@@ -9,9 +9,10 @@ import { useRouter } from "next/navigation";
 
 interface RegisterFormProps {
   onSuccess?: () => void;
+  redirect?: string;
 }
 
-export default function RegisterForm({ onSuccess }: RegisterFormProps) {
+export default function RegisterForm({ onSuccess, redirect }: RegisterFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,7 +67,6 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
             const loginData = await loginRes.json();
             if (loginRes.ok && loginData.token) {
               localStorage.setItem("token", loginData.token);
-              localStorage.setItem("isLoggedIn", "true");
               localStorage.setItem("userEmail", email);
               if (loginData.user && loginData.user.id) {
                 localStorage.setItem("userId", loginData.user.id.toString());
@@ -74,7 +74,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
               if (loginData.user && loginData.user.name) {
                 localStorage.setItem("userName", loginData.user.name);
               }
-              router.push("/");
+              router.push(redirect || "/");
             } else {
               setError(loginData.message || "Login failed after verification");
             }
@@ -115,7 +115,6 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         const loginData = await loginRes.json();
         if (loginRes.ok && loginData.token) {
           localStorage.setItem("token", loginData.token);
-          localStorage.setItem("isLoggedIn", "true");
           localStorage.setItem("userEmail", email);
           if (loginData.user && loginData.user.id) {
             localStorage.setItem("userId", loginData.user.id.toString());
@@ -123,7 +122,7 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
           if (loginData.user && loginData.user.name) {
             localStorage.setItem("userName", loginData.user.name);
           }
-          router.push("/");
+          router.push(redirect || "/");
         } else {
           setVerifError(loginData.message || "Login failed after verification");
         }

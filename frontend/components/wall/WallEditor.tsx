@@ -1,18 +1,18 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Settings, Plus, ImageIcon, Trash2, Download, Edit, Palette, Save, Home, User, ClipboardCheck, ClipboardCopy, Sparkles } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Upload, Settings, ImageIcon, Download, Edit, Save, ClipboardCopy, Sparkles } from "lucide-react";
 import Wall from "@/components/wall";
 import ImageBlock from "@/components/image-block";
 import WallSettings from "@/components/wall-settings";
 import ExportDialog from "@/components/export-dialog";
 import ImageEditor from "@/components/image-editor";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Tools from "@/components/ai/AITools";
 import { authenticatedFetch } from "@/lib/auth";
-import { getAllSharedSessions, createSharedSession } from '@/lib/shared';
+import { createSharedSession } from '@/lib/shared';
 import { getToken } from '@/lib/auth';
 
 interface WallEditorProps {
@@ -39,7 +39,6 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
   const [customBackgrounds, setCustomBackgrounds] = useState([]);
   const [wallBorder, setWallBorder] = useState<{ width: number; color: string; style: 'solid' | 'dashed' | 'dotted' | 'double'; radius: number }>({ width: 0, color: "#000000", style: "solid", radius: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const backgroundInputRef = useRef(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [editingImageId, setEditingImageId] = useState<number | null>(null);
@@ -53,14 +52,12 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("sessionId");
   const userId = localStorage.getItem("userId");
-  const router = useRouter();
   const [shareStatus, setShareStatus] = useState("");
   const [shareLink, setShareLink] = useState("");
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareType, setShareType] = useState<'view' | 'public' | 'private'>('view');
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [selectedEditors, setSelectedEditors] = useState<string[]>([]);
-  const [fetchingUsers, setFetchingUsers] = useState(false);
   const [searchEmail, setSearchEmail] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -236,13 +233,6 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
     setSelectedImage(image);
   };
 
-  // Complete image editing and update image
-  const handleImageEditComplete = (editedImage: any) => {
-    updateImage(editedImage.id, editedImage);
-    setEditingImageId(null);
-    setSelectedImage(null);
-  };
-
   // Handle AI image update
   const handleAIUpdate = (updatedImage: any) => {
     updateImage(updatedImage.id, updatedImage);
@@ -289,9 +279,6 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
     };
     setImages((prev: any[]) => [...prev, collageImage]);
   };
-
-  // Get the image currently being edited
-  const editingImage = editingImageId ? images.find((img) => img.id === editingImageId) : null;
 
   // Get current wall background value (use wall color if blank white wall is selected)
   const currentWallBackground = wallBackground.name === "Blank White Wall" ? wallColor : wallBackground.value;
@@ -406,30 +393,6 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
     setTimeout(() => setSaveStatus(""), 1500);
   };
 
-  // Share session
-  const handleShare = async () => {
-    if (!sessionId) {
-      setShareStatus("Please save your wall first!");
-      setShareLink("");
-      setTimeout(() => setShareStatus(""), 2000);
-      return;
-    }
-    setShareStatus("Sharing...");
-    setShareLink("");
-    try {
-      const res = await createSharedSession({ session_id: Number(sessionId), type: 'public', editors: [], viewers: [] });
-      if (res && res.id) {
-        const url = `${window.location.origin}/altar/${sessionId}?shared=1`;
-    setShareLink(url);
-        setShareStatus("Shared! Copy the link below.");
-      } else {
-        setShareStatus("Failed to share session.");
-      }
-    } catch (err: any) {
-      setShareStatus(err.message || "Failed to share session.");
-    }
-  };
-
   const handleCopyLink = () => {
     if (shareLink) {
       navigator.clipboard.writeText(shareLink);
@@ -443,7 +406,6 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
 
   // Fetch users for private sharing
   const fetchUsers = async () => {
-    setFetchingUsers(true);
     try {
       const token = getToken();
       const res = await fetch('http://localhost:4000/api/users', {
@@ -454,7 +416,6 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
     } catch (err) {
       setAllUsers([]);
     }
-    setFetchingUsers(false);
   };
 
   useEffect(() => {
@@ -500,7 +461,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
       let type = shareType === 'view' ? 'view' : shareType;
       let editors = shareType === 'private' ? selectedEditors : [];
       let viewers: string[] = [];
-      const res = await createSharedSession({ session_id: Number(sessionId), type, editors, viewers });
+      const res = await createSharedSession({ session_id: sessionId, type, editors, viewers });
       if (res && res.id) {
         let url = '';
         if (type === 'view') {

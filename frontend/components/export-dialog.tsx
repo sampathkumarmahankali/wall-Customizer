@@ -28,10 +28,22 @@ export default function ExportDialog({
   onClose,
 }: ExportDialogProps) {
   const [format, setFormat] = useState<"png" | "jpg" | "pdf">("pdf")
-  const [quality, setQuality] = useState(0.9)
-  const [scale, setScale] = useState(1)
+  const [quality, setQuality] = useState("standard")
   const [fileName, setFileName] = useState("mialter-altar")
   const [isExporting, setIsExporting] = useState(false)
+
+  const getScale = () => {
+    switch (quality) {
+      case "4x":
+        return 4
+      case "8k":
+        // Calculate scale to make the longest side 7680px
+        const longestSide = Math.max(wallSize.width, wallSize.height)
+        return 7680 / longestSide
+      default:
+        return 1
+    }
+  }
 
   const exportWall = async () => {
     if (!wallRef.current) return
@@ -39,6 +51,7 @@ export default function ExportDialog({
     setIsExporting(true)
 
     try {
+      const scale = getScale()
       // Get the wall container
       const wallContainer = wallRef.current
       const wallRect = wallContainer.getBoundingClientRect()
@@ -175,7 +188,7 @@ export default function ExportDialog({
         }
       } else {
         // Export as PNG or JPG
-        downloadCanvas(canvas, `${fileName}.${format}`, `image/${format}`, format === "png" ? 1.0 : quality)
+        downloadCanvas(canvas, `${fileName}.${format}`, `image/${format}`, 1.0)
       }
     } catch (error) {
       // console.error("Export failed:", error)
@@ -523,34 +536,22 @@ export default function ExportDialog({
 
           {format !== "pdf" && (
             <div>
-              <Label className="text-sm">Quality: {Math.round(quality * 100)}%</Label>
-              <Input
-                type="range"
-                min="0.1"
-                max="1"
-                step="0.1"
-                value={quality}
-                onChange={(e) => setQuality(Number.parseFloat(e.target.value))}
-                className="mt-1 h-2"
-              />
+              <Label className="text-sm">Quality</Label>
+              <Select value={quality} onValueChange={setQuality}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard">Standard</SelectItem>
+                  <SelectItem value="4x">4x Resolution</SelectItem>
+                  <SelectItem value="8k">8K Resolution</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Output: {Math.round(wallSize.width * getScale())} × {Math.round(wallSize.height * getScale())}px
+              </p>
             </div>
           )}
-
-          <div>
-            <Label className="text-sm">Scale: {scale}x</Label>
-            <Input
-              type="range"
-              min="0.5"
-              max="3"
-              step="0.1"
-              value={scale}
-              onChange={(e) => setScale(Number.parseFloat(e.target.value))}
-              className="mt-1 h-2"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Output: {Math.round(wallSize.width * scale)} × {Math.round(wallSize.height * scale)}px
-            </p>
-          </div>
 
           <Separator />
 
