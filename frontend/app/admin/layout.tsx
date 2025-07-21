@@ -85,14 +85,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   if (!adminUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0]">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
@@ -128,48 +128,48 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
-          <div className="flex h-16 items-center px-4">
-            <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
+        <div className="flex flex-col flex-grow bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-r border-[#FFD700]/30 rounded-tr-3xl rounded-br-3xl shadow-2xl my-4 ml-2">
+          <div className="flex h-20 items-center px-6 mb-2">
+            <h1 className="text-2xl font-extrabold text-indigo-700 tracking-tight drop-shadow">Admin Panel</h1>
           </div>
-          <nav className="flex-1 space-y-1 px-2 py-4">
+          <nav className="flex-1 space-y-2 px-4 py-4">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                  className={`group flex items-center gap-4 px-4 py-3 text-lg font-semibold rounded-xl transition-all shadow-sm mb-2 ${
                     isActive
-                      ? 'bg-indigo-100 text-indigo-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-gradient-to-r from-indigo-100 to-[#FFD700]/30 text-indigo-900 border-l-4 border-indigo-500 shadow-md'
+                      : 'text-gray-700 hover:bg-[#FFF8E1] hover:text-indigo-700'
                   }`}
                 >
-                  <item.icon className="mr-3 h-5 w-5" />
+                  <item.icon className={`h-7 w-7 ${isActive ? 'text-indigo-600' : 'text-[#C71585]'}`} />
                   {item.name}
                 </Link>
               );
             })}
           </nav>
-          <div className="border-t border-gray-200 p-4">
-            <div className="flex items-center">
+          <div className="border-t border-[#FFD700]/30 p-6 mt-4">
+            <div className="flex items-center gap-3 mb-2">
               <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
+                <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center">
+                  <span className="text-lg font-bold text-white">
                     {adminUser.name?.[0] || 'A'}
                   </span>
                 </div>
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">{adminUser.name}</p>
+              <div>
+                <p className="text-base font-semibold text-gray-800">{adminUser.name}</p>
                 <p className="text-xs text-gray-500">{adminUser.email}</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="mt-3 flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md w-full"
+              className="mt-2 flex items-center gap-2 px-4 py-2 text-base font-semibold text-indigo-700 bg-[#FFD700]/20 hover:bg-[#FFD700]/40 rounded-xl w-full transition-all"
             >
-              <LogOut className="mr-3 h-5 w-5" />
+              <LogOut className="h-5 w-5" />
               Logout
             </button>
           </div>
@@ -179,7 +179,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 bg-gradient-to-r from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] shadow-md border-b border-[#FFD700]/30 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
             className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
@@ -199,7 +199,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
           </div>
         </div>
-
         {/* Page content */}
         <main className="py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

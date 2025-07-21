@@ -10,6 +10,7 @@ const emailRoutes = require('./routes/email');
 const sharedRoutes = require('./routes/shared');
 const plansRoutes = require('./routes/plans');
 const decorsRoutes = require('./routes/decors');
+const usersRoutes = require('./routes/users');
 const pool = require('./db');
 
 const app = express();
@@ -35,6 +36,8 @@ app.use('/api/shared', sharedRoutes);
 app.use('/api/plans', plansRoutes);
 // Decors routes
 app.use('/api', decorsRoutes);
+// Users routes
+app.use('/api/users', usersRoutes);
 
 // Scheduled cleanup: delete unverified users whose code has expired
 setInterval(async () => {

@@ -87,14 +87,23 @@ router.post('/', authenticateToken, async (req, res) => {
   try {
     const { session_id, type, editors, viewers } = req.body;
     const shared_by = req.user.id;
-    let result;
-    // Convert editor user IDs to emails if needed
+    // Check if the user is the creator of the session
+    const [sessionRows] = await pool.query('SELECT user_id, (SELECT email FROM users WHERE id = user_id) as creatorEmail FROM edit_sessions WHERE id = ?', [session_id]);
+    if (!sessionRows.length || sessionRows[0].user_id !== shared_by) {
+      return res.status(403).json({ error: 'Only the creator of the session can share it.' });
+    }
     let editorEmails = editors;
     if (Array.isArray(editors) && editors.length > 0 && typeof editors[0] !== 'string') {
-      // If editors are user IDs, fetch emails
       const placeholders = editors.map(() => '?').join(',');
       const [rows] = await pool.query(`SELECT email FROM users WHERE id IN (${placeholders})`, editors);
       editorEmails = rows.map(r => r.email);
+    }
+    // Always add creator to editors for private shares
+    if (type === 'private') {
+      const creatorEmail = sessionRows[0].creatorEmail;
+      if (creatorEmail && !editorEmails.includes(creatorEmail)) {
+        editorEmails.push(creatorEmail);
+      }
     }
     if (type === 'public' || type === 'private') {
       // Check if a public or private shared session already exists for this session_id
@@ -147,12 +156,27 @@ router.patch('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { type, editors, viewers, last_edited_by } = req.body;
-    // Convert editor user IDs to emails if needed
+    const [sharedRows] = await pool.query('SELECT session_id FROM shared_sessions WHERE id = ?', [id]);
+    if (!sharedRows.length) {
+      return res.status(404).json({ error: 'Shared session not found' });
+    }
+    const session_id = sharedRows[0].session_id;
+    const [sessionRows] = await pool.query('SELECT user_id, (SELECT email FROM users WHERE id = user_id) as creatorEmail FROM edit_sessions WHERE id = ?', [session_id]);
+    if (!sessionRows.length || sessionRows[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Only the creator of the session can edit sharing.' });
+    }
     let editorEmails = editors;
     if (Array.isArray(editors) && editors.length > 0 && typeof editors[0] !== 'string') {
       const placeholders = editors.map(() => '?').join(',');
       const [rows] = await pool.query(`SELECT email FROM users WHERE id IN (${placeholders})`, editors);
       editorEmails = rows.map(r => r.email);
+    }
+    // Always add creator to editors for private shares
+    if (type === 'private') {
+      const creatorEmail = sessionRows[0].creatorEmail;
+      if (creatorEmail && !editorEmails.includes(creatorEmail)) {
+        editorEmails.push(creatorEmail);
+      }
     }
     await pool.query(
       'UPDATE shared_sessions SET type = ?, editors = ?, viewers = ?, last_edited_by = ?, last_edited_at = CURRENT_TIMESTAMP WHERE id = ?',

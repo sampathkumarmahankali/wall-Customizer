@@ -282,7 +282,7 @@ export default function ModerationPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0]">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
     );
@@ -291,328 +291,327 @@ export default function ModerationPage() {
   const stats = getStats();
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Content Moderation</h1>
-          <p className="text-gray-600 mt-2">Review and manage flagged content</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col">
+      <div className="max-w-7xl w-full py-12 px-4 mx-auto space-y-8">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-extrabold text-gray-900 drop-shadow mb-2">Content Moderation</h1>
+          {/* Add any top-level actions here if needed */}
         </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.pending}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Approved Today</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.approved}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Rejected Today</CardTitle>
+              <XCircle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.rejected}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Flagged Content */}
+        <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Flagged Content ({flaggedContent.length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved Today</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.approved}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rejected Today</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.rejected}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Flagged Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Flagged Content ({flaggedContent.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {flaggedContent.length > 0 ? (
-            <div className="space-y-4">
-              {flaggedContent.map((item) => (
-                <div key={item.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      {getTypeBadge(item.type)}
-                      {getStatusBadge(item.status)}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Reported by {item.reportedBy} on {formatDate(item.reportedAt)}
-                    </div>
-                  </div>
-                  
-                  <div className="mb-3">
-                    <h4 className="font-medium mb-1">Reason:</h4>
-                    <p className="text-sm text-gray-600">{item.reason}</p>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <h4 className="font-medium mb-1">Content:</h4>
-                    <div className="bg-gray-50 p-3 rounded text-sm">
-                      {item.content}
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleViewDetails(item)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </Button>
-                    {item.status === 'pending' && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-green-600 hover:text-green-700"
-                          onClick={() => handleModerationAction(item.id, 'approve')}
-                          disabled={actionLoading === item.id}
-                        >
-                          {actionLoading === item.id ? (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                          )}
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => handleModerationAction(item.id, 'reject')}
-                          disabled={actionLoading === item.id}
-                        >
-                          {actionLoading === item.id ? (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          ) : (
-                            <XCircle className="h-4 w-4 mr-2" />
-                          )}
-                          Reject
-                        </Button>
-                      </>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-600 hover:text-red-700"
-                      onClick={() => handleModerationAction(item.id, 'delete')}
-                      disabled={actionLoading === item.id}
-                    >
-                      {actionLoading === item.id ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4 mr-2" />
-                      )}
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No flagged content</h3>
-              <p className="text-gray-500">All content has been reviewed and is clean.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Decor Management Card */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Decor Management</CardTitle>
-          <Button onClick={() => { setEditingDecor(null); setShowDecorModal(true); }}>Add Decor</Button>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex gap-2 items-center">
-            <Input
-              placeholder="Add new category"
-              value={newCategory}
-              onChange={e => setNewCategory(e.target.value)}
-              className="w-64"
-            />
-            <Button onClick={handleAddCategory}>Add Category</Button>
-          </div>
-          {/* Category selector */}
-          <div className="flex gap-2 mb-4 flex-wrap">
-            {categories.map((cat, idx) => (
-              <Button
-                key={cat.id}
-                variant={selectedCategory === cat.id ? 'default' : 'outline'}
-                className={selectedCategory === cat.id ? 'font-bold border-primary' : ''}
-                onClick={() => setSelectedCategory(cat.id)}
-              >
-                {cat.name}
-              </Button>
-            ))}
-          </div>
-          {loadingDecors ? (
-            <div>Loading decors...</div>
-          ) : (
-            <div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50 rounded-lg">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                {decorsByCategory.filter(cat => cat.id === selectedCategory).map(cat => (
-                  <React.Fragment key={cat.id}>
-                    {cat.decors.map((decor: any) => (
-                      <div key={decor.id} className="border rounded-lg p-3 flex flex-col items-center bg-white hover:bg-blue-50 transition cursor-pointer">
-                        <img src={decor.image_base64} alt={decor.name} className="w-16 h-16 object-contain mb-2 rounded" />
-                        <div className="font-semibold mb-1 text-center">{decor.name}</div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => { setEditingDecor(decor); setDecorImage(decor.image_base64); setShowDecorModal(true); }}>Edit</Button>
-                          <Button size="sm" variant="destructive" onClick={() => handleDeleteDecor(decor.id)}>Delete</Button>
-                        </div>
+            {flaggedContent.length > 0 ? (
+              <div className="space-y-4">
+                {flaggedContent.map((item) => (
+                  <div key={item.id} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        {getTypeBadge(item.type)}
+                        {getStatusBadge(item.status)}
                       </div>
-                    ))}
-                  </React.Fragment>
+                      <div className="text-sm text-gray-500">
+                        Reported by {item.reportedBy} on {formatDate(item.reportedAt)}
+                      </div>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <h4 className="font-medium mb-1">Reason:</h4>
+                      <p className="text-sm text-gray-600">{item.reason}</p>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <h4 className="font-medium mb-1">Content:</h4>
+                      <div className="bg-gray-50 p-3 rounded text-sm">
+                        {item.content}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewDetails(item)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </Button>
+                      {item.status === 'pending' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-green-600 hover:text-green-700"
+                            onClick={() => handleModerationAction(item.id, 'approve')}
+                            disabled={actionLoading === item.id}
+                          >
+                            {actionLoading === item.id ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                            )}
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => handleModerationAction(item.id, 'reject')}
+                            disabled={actionLoading === item.id}
+                          >
+                            {actionLoading === item.id ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <XCircle className="h-4 w-4 mr-2" />
+                            )}
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleModerationAction(item.id, 'delete')}
+                        disabled={actionLoading === item.id}
+                      >
+                        {actionLoading === item.id ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4 mr-2" />
+                        )}
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
+            ) : (
+              <div className="text-center py-12">
+                <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No flagged content</h3>
+                <p className="text-gray-500">All content has been reviewed and is clean.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Decor Management Card */}
+        <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Decor Management</CardTitle>
+            <Button onClick={() => { setEditingDecor(null); setShowDecorModal(true); }}>Add Decor</Button>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 flex gap-2 items-center">
+              <Input
+                placeholder="Add new category"
+                value={newCategory}
+                onChange={e => setNewCategory(e.target.value)}
+                className="w-64"
+              />
+              <Button onClick={handleAddCategory}>Add Category</Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
-      {/* Decor Modal */}
-      <Dialog open={showDecorModal} onOpenChange={setShowDecorModal}>
-        <DialogContent className="max-w-lg mx-auto">
-          <DialogHeader>
-            <DialogTitle>{editingDecor?.id ? "Edit Decor" : "Add Decor"}</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-4">
-            <Input
-              placeholder="Decor Name"
-              value={editingDecor?.name || ""}
-              onChange={e => setEditingDecor({ ...editingDecor, name: e.target.value })}
-            />
-            <select
-              className="border rounded p-2"
-              value={editingDecor?.category_id || ""}
-              onChange={e => setEditingDecor({ ...editingDecor, category_id: Number(e.target.value) })}
-            >
-              <option value="">Select Category</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+            {/* Category selector */}
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {categories.map((cat, idx) => (
+                <Button
+                  key={cat.id}
+                  variant={selectedCategory === cat.id ? 'default' : 'outline'}
+                  className={selectedCategory === cat.id ? 'font-bold border-primary' : ''}
+                  onClick={() => setSelectedCategory(cat.id)}
+                >
+                  {cat.name}
+                </Button>
               ))}
-            </select>
-            <Input type="file" accept="image/*" onChange={handleImageUpload} />
-            {decorImage && <img src={decorImage} alt="Preview" className="w-20 h-20 object-contain mx-auto" />}
-            <div className="flex gap-2 justify-end mt-4">
-              <Button variant="outline" onClick={() => setShowDecorModal(false)}>Cancel</Button>
-              <Button onClick={handleSaveDecor}>{editingDecor?.id ? "Update" : "Add"} Decor</Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+            {loadingDecors ? (
+              <div>Loading decors...</div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50 rounded-lg">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                  {decorsByCategory.filter(cat => cat.id === selectedCategory).map(cat => (
+                    <React.Fragment key={cat.id}>
+                      {cat.decors.map((decor: any) => (
+                        <div key={decor.id} className="border rounded-lg p-3 flex flex-col items-center bg-white hover:bg-blue-50 transition cursor-pointer">
+                          <img src={decor.image_base64} alt={decor.name} className="w-16 h-16 object-contain mb-2 rounded" />
+                          <div className="font-semibold mb-1 text-center">{decor.name}</div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => { setEditingDecor(decor); setDecorImage(decor.image_base64); setShowDecorModal(true); }}>Edit</Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteDecor(decor.id)}>Delete</Button>
+                          </div>
+                        </div>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        {/* Decor Modal */}
+        <Dialog open={showDecorModal} onOpenChange={setShowDecorModal}>
+          <DialogContent className="max-w-lg mx-auto">
+            <DialogHeader>
+              <DialogTitle>{editingDecor?.id ? "Edit Decor" : "Add Decor"}</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4">
+              <Input
+                placeholder="Decor Name"
+                value={editingDecor?.name || ""}
+                onChange={e => setEditingDecor({ ...editingDecor, name: e.target.value })}
+              />
+              <select
+                className="border rounded p-2"
+                value={editingDecor?.category_id || ""}
+                onChange={e => setEditingDecor({ ...editingDecor, category_id: Number(e.target.value) })}
+              >
+                <option value="">Select Category</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+              <Input type="file" accept="image/*" onChange={handleImageUpload} />
+              {decorImage && <img src={decorImage} alt="Preview" className="w-20 h-20 object-contain mx-auto" />}
+              <div className="flex gap-2 justify-end mt-4">
+                <Button variant="outline" onClick={() => setShowDecorModal(false)}>Cancel</Button>
+                <Button onClick={handleSaveDecor}>{editingDecor?.id ? "Update" : "Add"} Decor</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
-      {/* Moderation Guidelines */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Moderation Guidelines</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Content that should be flagged:</h4>
-              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                <li>Inappropriate or offensive content</li>
-                <li>Spam or promotional content</li>
-                <li>Copyright violations</li>
-                <li>Personal information exposure</li>
-                <li>Harmful or dangerous content</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Actions available:</h4>
-              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                <li><strong>Approve:</strong> Content is appropriate and can remain</li>
-                <li><strong>Reject:</strong> Content violates guidelines and should be removed</li>
-                <li><strong>Delete:</strong> Permanently remove content from the platform</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Content Details Dialog */}
-      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Content Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about the flagged content
-            </DialogDescription>
-          </DialogHeader>
-          {selectedContent && (
+        {/* Moderation Guidelines */}
+        <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+          <CardHeader>
+            <CardTitle>Moderation Guidelines</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Content Type</label>
-                  <div className="mt-1">{getTypeBadge(selectedContent.type)}</div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Status</label>
-                  <div className="mt-1">{getStatusBadge(selectedContent.status)}</div>
-                </div>
-              </div>
-              
               <div>
-                <label className="text-sm font-medium text-gray-700">Reason for Flagging</label>
-                <p className="text-sm text-gray-900 mt-1">{selectedContent.reason}</p>
+                <h4 className="font-medium mb-2">Content that should be flagged:</h4>
+                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                  <li>Inappropriate or offensive content</li>
+                  <li>Spam or promotional content</li>
+                  <li>Copyright violations</li>
+                  <li>Personal information exposure</li>
+                  <li>Harmful or dangerous content</li>
+                </ul>
               </div>
-              
               <div>
-                <label className="text-sm font-medium text-gray-700">Content</label>
-                <div className="bg-gray-50 p-3 rounded text-sm mt-1">
-                  {selectedContent.content}
-                </div>
+                <h4 className="font-medium mb-2">Actions available:</h4>
+                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                  <li><strong>Approve:</strong> Content is appropriate and can remain</li>
+                  <li><strong>Reject:</strong> Content violates guidelines and should be removed</li>
+                  <li><strong>Delete:</strong> Permanently remove content from the platform</li>
+                </ul>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Reported By</label>
-                  <p className="text-sm text-gray-900 mt-1">{selectedContent.reportedBy}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Reported At</label>
-                  <p className="text-sm text-gray-900 mt-1">{formatDate(selectedContent.reportedAt)}</p>
-                </div>
-              </div>
-              
-              {selectedContent.userEmail && (
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Content Creator</label>
-                  <p className="text-sm text-gray-900 mt-1">{selectedContent.userEmail}</p>
-                </div>
-              )}
-              
-              {selectedContent.sessionId && (
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Session ID</label>
-                  <p className="text-sm text-gray-900 mt-1">{selectedContent.sessionId}</p>
-                </div>
-              )}
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Content Details Dialog */}
+        <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Content Details</DialogTitle>
+              <DialogDescription>
+                Detailed information about the flagged content
+              </DialogDescription>
+            </DialogHeader>
+            {selectedContent && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Content Type</label>
+                    <div className="mt-1">{getTypeBadge(selectedContent.type)}</div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Status</label>
+                    <div className="mt-1">{getStatusBadge(selectedContent.status)}</div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Reason for Flagging</label>
+                  <p className="text-sm text-gray-900 mt-1">{selectedContent.reason}</p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Content</label>
+                  <div className="bg-gray-50 p-3 rounded text-sm mt-1">
+                    {selectedContent.content}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Reported By</label>
+                    <p className="text-sm text-gray-900 mt-1">{selectedContent.reportedBy}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Reported At</label>
+                    <p className="text-sm text-gray-900 mt-1">{formatDate(selectedContent.reportedAt)}</p>
+                  </div>
+                </div>
+                
+                {selectedContent.userEmail && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Content Creator</label>
+                    <p className="text-sm text-gray-900 mt-1">{selectedContent.userEmail}</p>
+                  </div>
+                )}
+                
+                {selectedContent.sessionId && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Session ID</label>
+                    <p className="text-sm text-gray-900 mt-1">{selectedContent.sessionId}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 } 
