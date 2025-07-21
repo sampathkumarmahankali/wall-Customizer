@@ -88,16 +88,8 @@ export default function Header({ showLogout = true, showProfile = true, classNam
       <header className={`w-full bg-gradient-to-r from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] shadow-md px-4 md:px-10 py-3 flex items-center justify-between z-50 border-b border-[#FFD700]/30 ${className}`}> {/* Enhanced background and border */}
         {/* Logo */}
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push("/")}> 
-          <div className="p-2 bg-gradient-to-r from-[#FFD700] via-[#C71585] to-[#8e44ad] rounded-lg shadow-md flex items-center justify-center">
-            {/* Candle/altar SVG icon for memorial feel */}
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="14" cy="22" rx="8" ry="4" fill="#FFD700" fillOpacity="0.25" />
-              <rect x="10" y="10" width="8" height="10" rx="4" fill="#C71585" fillOpacity="0.7" />
-              <rect x="12.5" y="4" width="3" height="8" rx="1.5" fill="#FFD700" />
-              <ellipse cx="14" cy="4" rx="1.5" ry="2.5" fill="#FFD700" />
-            </svg>
-          </div>
-          <span className="text-2xl font-extrabold bg-gradient-to-r from-[#FFD700] via-[#C71585] to-[#8e44ad] bg-clip-text text-transparent tracking-tight drop-shadow-sm group-hover:drop-shadow-lg transition">MIALTER</span>
+          {/* Use uploaded logo image without background */}
+          <img src="/mialtar-logo.png" alt="MIALTAR Logo" className="h-10 w-auto" style={{ display: 'block' }} />
         </div>
         {/* Navigation Links */}
         <nav className="hidden md:flex gap-6 items-center">
@@ -175,10 +167,11 @@ export default function Header({ showLogout = true, showProfile = true, classNam
               </div>
             )}
           </div>
+          {/* Show Profile button only on desktop */}
           {isLoggedIn && showProfile && (
             <Button
               onClick={() => router.push("/profile")}
-              className="flex items-center gap-1 rounded-full px-5 py-2 font-semibold bg-[#FF9800] text-white hover:bg-[#fb8c00] transition-all border-none"
+              className="hidden md:flex items-center gap-1 rounded-full px-5 py-2 font-semibold bg-[#FF9800] text-white hover:bg-[#fb8c00] transition-all border-none"
             >
               <User className="h-5 w-5" />
               Profile
@@ -230,15 +223,7 @@ export default function Header({ showLogout = true, showProfile = true, classNam
                 Admin
               </button>
             )}
-            {isLoggedIn && showProfile && (
-              <Button
-                onClick={() => { router.push("/profile"); setMenuOpen(false); }}
-                className="flex items-center gap-1 w-full justify-center rounded-full px-5 py-2 font-semibold bg-[#FF9800] text-white hover:bg-[#fb8c00] transition-all border-none"
-              >
-                <User className="h-5 w-5" />
-                Profile
-              </Button>
-            )}
+            {/* Profile button removed from mobile menu */}
             {isLoggedIn && showLogout && (
               <Button
                 onClick={() => { handleLogout(); setMenuOpen(false); }}

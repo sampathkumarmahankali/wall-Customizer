@@ -36,50 +36,49 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col"> {/* Light gold/cream background */}
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <div className="flex-1 flex items-center justify-center px-2 sm:px-4">
+        <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left: Hero Text */}
           <div className="space-y-6">
-            <h2 className="text-lg font-semibold text-green-700 uppercase tracking-wide">Welcome to MIALTER</h2>
-            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight">
+            <h2 className="text-base sm:text-lg font-semibold text-green-700 uppercase tracking-wide">Welcome to MIALTER</h2>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight">
               Create a beautiful virtual altar and honor your loved ones with <span className="text-indigo-600">MIALTER</span>.
             </h1>
-            <p className="text-gray-600 text-lg max-w-md">
+            <p className="text-gray-600 text-base sm:text-lg max-w-md">
               MIALTER lets you build heartfelt memorials and altars online. Share memories, photos, and tributes in a serene, customizable space. Invite family and friends to participate and keep memories alive together.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <Button size="lg" className="px-8 py-3 text-lg" onClick={handleStart}>Start</Button>
+            <div className="flex flex-col sm:flex-row gap-4 items-center w-full">
+              <Button size="lg" className="px-8 py-3 text-lg w-full sm:w-auto" onClick={handleStart}>Start</Button>
             </div>
             <div className="flex items-center gap-2 mt-4">
               <span className="text-green-700 font-semibold">★ 4.9/5</span>
               <span className="text-gray-500">from over 600 reviews</span>
             </div>
-            {/* Add margin below reviews for spacing */}
-            <div className="mb-12" />
+            <div className="mb-8 sm:mb-12" />
           </div>
           {/* Right: Hero Image */}
-          <div className="relative flex justify-center items-center group">
-            <div className="absolute -top-8 -left-8 w-64 h-64 bg-[#FFD700]/30 rounded-3xl rotate-6 z-0 transition-transform duration-300 group-hover:-rotate-3 group-hover:-translate-y-2 group-hover:-translate-x-2" /> {/* Gold */}
-            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-[#A0522D]/20 rounded-full z-0 transition-transform duration-300 group-hover:rotate-3 group-hover:translate-y-2 group-hover:translate-x-2" /> {/* Brown */}
-            <div className="absolute top-16 right-0 w-24 h-24 bg-[#C71585]/20 rounded-full z-0" /> {/* Rose */}
-            <div className="absolute bottom-0 left-1/2 w-20 h-20 bg-[#8e44ad]/20 rounded-full z-0" /> {/* Purple */}
+          <div className="relative flex justify-center items-center group min-h-[220px]">
+            <div className="absolute -top-8 -left-8 w-40 h-40 md:w-64 md:h-64 bg-[#FFD700]/30 rounded-3xl rotate-6 z-0 transition-transform duration-300 group-hover:-rotate-3 group-hover:-translate-y-2 group-hover:-translate-x-2 hidden sm:block" /> {/* Gold */}
+            <div className="absolute -bottom-8 -right-8 w-20 h-20 md:w-32 md:h-32 bg-[#A0522D]/20 rounded-full z-0 transition-transform duration-300 group-hover:rotate-3 group-hover:translate-y-2 group-hover:translate-x-2 hidden sm:block" /> {/* Brown */}
+            <div className="absolute top-16 right-0 w-16 h-16 md:w-24 md:h-24 bg-[#C71585]/20 rounded-full z-0 hidden sm:block" /> {/* Rose */}
+            <div className="absolute bottom-0 left-1/2 w-12 h-12 md:w-20 md:h-20 bg-[#8e44ad]/20 rounded-full z-0 hidden sm:block" /> {/* Purple */}
             <Image
               src="/uploads/mona-lisa.jpg"
               alt="MIALTER virtual altar preview"
-              width={400}
-              height={400}
-              className="rounded-2xl shadow-2xl relative z-10 object-cover border-4 border-white transition-transform duration-300 group-hover:rotate-2 group-hover:scale-105"
+              width={320}
+              height={320}
+              className="rounded-2xl shadow-2xl relative z-10 object-cover border-4 border-white transition-transform duration-300 group-hover:rotate-2 group-hover:scale-105 w-48 h-48 sm:w-80 sm:h-80 md:w-[400px] md:h-[400px]"
             />
             {/* Decorative swirl or icon */}
-            <svg className="absolute top-8 right-8 w-12 h-12 text-[#FFD700]/60 z-20 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" /><circle cx="24" cy="24" r="10" /></svg>
+            <svg className="absolute top-4 right-4 w-8 h-8 md:w-12 md:h-12 text-[#FFD700]/60 z-20 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 hidden sm:block" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" /><circle cx="24" cy="24" r="10" /></svg>
           </div>
         </div>
       </div>
       {/* Why MIALTER? section replaced with new hero features section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-12 text-gray-900">Create your virtual altar for remembrance and honoring</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+      <section className="py-10 sm:py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4">
+          <h2 className="text-2xl sm:text-4xl font-bold text-center mb-8 sm:mb-12 text-gray-900">Create your virtual altar for remembrance and honoring</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-14 h-14 rounded-full bg-[#FFE0CC] flex items-center justify-center shadow-sm">
                 {/* User/Photo icon */}
@@ -136,21 +135,19 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex justify-center">
-            <button className="mt-2 px-10 py-4 bg-[#FF9800] hover:bg-[#fb8c00] text-white text-lg font-bold rounded-md shadow transition">Create altar</button>
+            <button className="mt-2 px-8 py-3 sm:px-10 sm:py-4 bg-[#FF9800] hover:bg-[#fb8c00] text-white text-base sm:text-lg font-bold rounded-md shadow transition w-full sm:w-auto">Create altar</button>
           </div>
         </div>
       </section>
-
       {/* Divider between Why MIALTER and How It Works */}
       <div className="flex justify-center my-0">
-        <div className="w-32 h-1 rounded-full bg-gradient-to-r from-[#FFD700]/40 via-[#FF9800]/40 to-[#C71585]/30 shadow-sm" />
+        <div className="w-20 h-1 sm:w-32 rounded-full bg-gradient-to-r from-[#FFD700]/40 via-[#FF9800]/40 to-[#C71585]/30 shadow-sm" />
       </div>
-
       {/* How It Works Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <section className="py-10 sm:py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-gray-900">How It Works</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-14 h-14 rounded-full bg-[#FFE0CC] flex items-center justify-center shadow-sm">
                 {/* Rocket icon */}
@@ -194,12 +191,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* Testimonials Section */}
-      <div className="py-16" style={{ background: 'linear-gradient(90deg, #FFF3E0 0%, #FDEBD0 100%)' }}>
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-10 bg-gradient-to-r from-indigo-600 to-green-600 bg-clip-text text-transparent">What Our Users Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="py-10 sm:py-16" style={{ background: 'linear-gradient(90deg, #FFF3E0 0%, #FDEBD0 100%)' }}>
+        <div className="max-w-4xl mx-auto px-2 sm:px-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-10 bg-gradient-to-r from-indigo-600 to-green-600 bg-clip-text text-transparent">What Our Users Say</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 overflow-x-auto">
             {testimonials.map((t) => (
               <div key={t.name} className="flex flex-col items-center p-6 bg-gradient-to-br from-green-50 via-white to-indigo-50 rounded-2xl shadow-lg border border-indigo-100">
                 <div className="w-16 h-16 rounded-full bg-indigo-200 flex items-center justify-center text-2xl font-bold text-indigo-700 mb-4">
@@ -212,11 +208,10 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-
       {/* FAQ Section */}
-      <div className="py-16" style={{ background: 'linear-gradient(90deg, #FFF8E1 0%, #FDEBD0 100%)' }}>
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-10 bg-gradient-to-r from-green-600 to-indigo-600 bg-clip-text text-transparent">Frequently Asked Questions</h2>
+      <div className="py-10 sm:py-16" style={{ background: 'linear-gradient(90deg, #FFF8E1 0%, #FDEBD0 100%)' }}>
+        <div className="max-w-3xl mx-auto px-2 sm:px-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-10 bg-gradient-to-r from-green-600 to-indigo-600 bg-clip-text text-transparent">Frequently Asked Questions</h2>
           <div className="space-y-4">
             {faqs.map((faq, idx) => (
               <details key={faq.q} className="bg-white rounded-xl shadow border border-indigo-100 p-4 group">
@@ -230,13 +225,12 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-
       {/* Final Call to Action Section */}
-      <div className="py-16 bg-gradient-to-r from-[#FFD700]/80 via-[#C71585]/60 to-[#8e44ad]/60 flex items-center justify-center">
-        <div className="max-w-2xl w-full text-center">
-          <h2 className="text-4xl font-extrabold text-white mb-4 drop-shadow">Ready to create your dream wall?</h2>
-          <p className="text-lg text-white/90 mb-8">Unleash your creativity and design a wall that inspires you every day. Get started now!</p>
-          <Button size="lg" className="px-10 py-4 text-xl font-bold bg-white text-indigo-700 hover:bg-indigo-50 shadow-lg rounded-full" onClick={handleStart}>
+      <div className="py-10 sm:py-16 bg-gradient-to-r from-[#FFD700]/80 via-[#C71585]/60 to-[#8e44ad]/60 flex items-center justify-center">
+        <div className="max-w-2xl w-full text-center px-2 sm:px-0">
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-white mb-4 drop-shadow">Ready to create your dream wall?</h2>
+          <p className="text-base sm:text-lg text-white/90 mb-8">Unleash your creativity and design a wall that inspires you every day. Get started now!</p>
+          <Button size="lg" className="px-8 py-3 sm:px-10 sm:py-4 text-lg sm:text-xl font-bold bg-white text-indigo-700 hover:bg-indigo-50 shadow-lg rounded-full w-full sm:w-auto" onClick={handleStart}>
             Get Started
           </Button>
         </div>

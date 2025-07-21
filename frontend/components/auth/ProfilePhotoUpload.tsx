@@ -56,7 +56,7 @@ const convertFileToBase64 = (file: File): Promise<string> => {
 const uploadProfilePhoto = async (base64Data: string, fileName: string, fileType: string) => {
   try {
     const headers = getAuthHeadersForFormData();
-    const response = await fetch('http://localhost:4000/api/upload-profile-photo', {
+    const response = await fetch('http://localhost:4000/api/auth/upload-profile-photo', {
       method: 'POST',
       headers: {
         ...headers,
@@ -155,7 +155,7 @@ export default function ProfilePhotoUpload({
       // If there's a current photo, remove it from backend
       if (currentPhoto) {
         const headers = getAuthHeadersForFormData();
-        const response = await fetch('http://localhost:4000/api/remove-profile-photo', {
+        const response = await fetch('http://localhost:4000/api/auth/remove-profile-photo', {
           method: 'DELETE',
           headers: {
             ...headers,

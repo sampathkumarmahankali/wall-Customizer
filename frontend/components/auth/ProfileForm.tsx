@@ -46,7 +46,7 @@ export default function ProfileForm({ onSuccess }: ProfileFormProps) {
     }
 
     try {
-      const response = await authenticatedFetch("http://localhost:4000/api/update-password", {
+      const response = await authenticatedFetch("http://localhost:4000/api/auth/update-password", {
         method: "POST",
         body: JSON.stringify({ email, currentPassword, newPassword }),
       });

@@ -131,239 +131,128 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Overview of your MIALTER platform</p>
-        </div>
-        <Button onClick={handleExportUsers} className="flex items-center gap-2">
-          <Download className="h-4 w-4" />
-          Export Users
-        </Button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('users')}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalUsers || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              All registered users
-            </p>
-            <div className="flex items-center mt-2 text-xs text-blue-600">
-              <span>View details</span>
-              <ArrowRight className="h-3 w-3 ml-1" />
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col relative"> {/* Match home page background */}
+      {/* Removed decorative background shapes */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 relative z-10">
+        <div className="max-w-7xl w-full space-y-10 py-12">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-5xl font-extrabold text-gray-900 drop-shadow mb-2">Admin Dashboard</h1>
+              <p className="text-lg text-gray-600">Overview of your MIALTER platform</p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('analytics')}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.activeUsers || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Active in last 30 days
-            </p>
-            <div className="flex items-center mt-2 text-xs text-blue-600">
-              <span>View analytics</span>
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('analytics')}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalSessions || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              All design sessions
-            </p>
-            <div className="flex items-center mt-2 text-xs text-blue-600">
-              <span>View reports</span>
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('payments')}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Premium Users</CardTitle>
-            <Crown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.premiumUsers || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              Premium subscribers
-            </p>
-            <div className="flex items-center mt-2 text-xs text-blue-600">
-              <span>View payments</span>
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Registration Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              User Registration Trend
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {analytics?.registrationTrend && analytics.registrationTrend.length > 0 ? (
-              <div className="space-y-2">
-                {analytics.registrationTrend.slice(-7).map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{item.date}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-indigo-600 h-2 rounded-full" 
-                          style={{ width: `${(item.count / Math.max(...analytics.registrationTrend.map(r => r.count))) * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium">{item.count}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-8">No registration data available</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Session Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Session Creation Trend
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {analytics?.sessionTrend && analytics.sessionTrend.length > 0 ? (
-              <div className="space-y-2">
-                {analytics.sessionTrend.slice(-7).map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">{item.date}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-green-600 h-2 rounded-full" 
-                          style={{ width: `${(item.count / Math.max(...analytics.sessionTrend.map(s => s.count))) * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium">{item.count}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-8">No session data available</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Subscription Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5" />
-            Subscription Distribution
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {analytics?.subscriptionStats && analytics.subscriptionStats.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {analytics.subscriptionStats.map((stat, index) => (
-                <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-indigo-600">{stat.count}</div>
-                  <div className="text-sm text-gray-600 capitalize">{stat.subscription_status}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-8">No subscription data available</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
-              onClick={() => handleQuickAction('users')}
-            >
-              <Users className="h-6 w-6 mb-2" />
-              Manage Users
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col items-center justify-center hover:bg-green-50 hover:border-green-300 transition-colors"
-              onClick={() => handleQuickAction('analytics')}
-            >
-              <BarChart3 className="h-6 w-6 mb-2" />
-              View Analytics
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col items-center justify-center hover:bg-purple-50 hover:border-purple-300 transition-colors"
-              onClick={() => handleQuickAction('export')}
-            >
-              <Download className="h-6 w-6 mb-2" />
-              Export Reports
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col items-center justify-center hover:bg-yellow-50 hover:border-yellow-300 transition-colors"
-              onClick={() => handleQuickAction('payments')}
-            >
-              <Crown className="h-6 w-6 mb-2" />
-              Payment Analytics
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col items-center justify-center hover:bg-red-50 hover:border-red-300 transition-colors"
-              onClick={() => handleQuickAction('moderation')}
-            >
-              <BarChart3 className="h-6 w-6 mb-2" />
-              Content Moderation
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col items-center justify-center hover:bg-gray-50 hover:border-gray-300 transition-colors"
-              onClick={() => handleQuickAction('settings')}
-            >
-              <BarChart3 className="h-6 w-6 mb-2" />
-              Platform Settings
+            <Button onClick={handleExportUsers} className="flex items-center gap-2 bg-[#FF9800] hover:bg-[#fb8c00] text-white text-lg font-bold rounded-md shadow px-6 py-3">
+              <Download className="h-5 w-5" />
+              Export Users
             </Button>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30 cursor-pointer hover:shadow-amber-200 transition-shadow" onClick={() => handleQuickAction('users')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-bold">Total Users</CardTitle>
+                <Users className="h-6 w-6 text-[#FF9800]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-extrabold text-indigo-700">{stats?.totalUsers || 0}</div>
+                <p className="text-sm text-gray-500 mt-1">All registered users</p>
+                <div className="flex items-center mt-2 text-xs text-blue-600">
+                  <span>View details</span>
+                  <ArrowRight className="h-3 w-3 ml-1" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30 cursor-pointer hover:shadow-amber-200 transition-shadow" onClick={() => handleQuickAction('analytics')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-bold">Active Users</CardTitle>
+                <Activity className="h-6 w-6 text-[#8e44ad]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-extrabold text-indigo-700">{stats?.activeUsers || 0}</div>
+                <p className="text-sm text-gray-500 mt-1">Active in last 30 days</p>
+                <div className="flex items-center mt-2 text-xs text-blue-600">
+                  <span>View analytics</span>
+                  <ArrowRight className="h-3 w-3 ml-1" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30 cursor-pointer hover:shadow-amber-200 transition-shadow" onClick={() => handleQuickAction('analytics')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-bold">Total Sessions</CardTitle>
+                <BarChart3 className="h-6 w-6 text-[#C71585]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-extrabold text-indigo-700">{stats?.totalSessions || 0}</div>
+                <p className="text-sm text-gray-500 mt-1">All design sessions</p>
+                <div className="flex items-center mt-2 text-xs text-blue-600">
+                  <span>View reports</span>
+                  <ArrowRight className="h-3 w-3 ml-1" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30 cursor-pointer hover:shadow-amber-200 transition-shadow" onClick={() => handleQuickAction('payments')}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-lg font-bold">Premium Users</CardTitle>
+                <Crown className="h-6 w-6 text-[#FFD700]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-extrabold text-indigo-700">{stats?.premiumUsers || 0}</div>
+                <p className="text-sm text-gray-500 mt-1">Premium subscribers</p>
+                <div className="flex items-center mt-2 text-xs text-blue-600">
+                  <span>View payments</span>
+                  <ArrowRight className="h-3 w-3 ml-1" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
+            {/* Registration Trend */}
+            <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30 p-4">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-3 text-2xl font-extrabold text-indigo-700 drop-shadow">
+                  <TrendingUp className="h-7 w-7 text-[#FF9800]" />
+                  User Registration Trend
+                </CardTitle>
+                {analytics?.registrationTrend && analytics.registrationTrend.length > 0 && (
+                  <div className="mt-2 text-lg font-semibold text-green-700">
+                    {analytics.registrationTrend.reduce((sum, item) => sum + item.count, 0)} registrations in last {analytics.registrationTrend.length} days
+                  </div>
+                )}
+              </CardHeader>
+              <CardContent>
+                {analytics?.registrationTrend && analytics.registrationTrend.length > 0 ? (
+                  <div className="space-y-2">
+                    {analytics.registrationTrend.slice(-7).map((item, index) => {
+                      const max = Math.max(...analytics.registrationTrend.map(r => r.count));
+                      const percent = max > 0 ? (item.count / max) * 100 : 0;
+                      return (
+                        <div key={index} className="flex items-center gap-4">
+                          <span className="text-base text-gray-600 w-28 flex-shrink-0">{item.date}</span>
+                          <div className="flex-1 min-w-0 flex items-center gap-2">
+                            <div className="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden ml-2">
+                              <div
+                                className="absolute left-0 top-0 h-4 rounded-full bg-gradient-to-r from-indigo-400 via-indigo-600 to-[#FF9800] shadow"
+                                style={{ width: `${percent}%`, minWidth: 8 }}
+                              ></div>
+                            </div>
+                            <span className="text-base font-bold text-indigo-700 ml-2 flex-shrink-0">{item.count}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No registration data available</p>
+                )}
+              </CardContent>
+            </Card>
+            {/* Add more chart cards here as needed, matching the style */}
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 

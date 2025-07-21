@@ -31,7 +31,7 @@ export default function Footer() {
         </span>
       </div>
       <footer className="w-full bg-black text-yellow-400 pt-8 pb-4 mt-0 border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4">
           {/* Project Title and Description */}
           <div className="mb-6 text-center">
             <div className="text-lg md:text-xl text-white font-medium mb-1">Create your perfect virtual altar</div>
@@ -40,7 +40,7 @@ export default function Footer() {
             </div>
           </div>
           {/* Navigation Links */}
-          <div className="flex flex-wrap gap-6 justify-center text-sm font-semibold mb-6">
+          <div className="flex flex-wrap flex-col sm:flex-row gap-2 sm:gap-6 justify-center items-center text-sm font-semibold mb-6 text-center">
             <a href="/" className="hover:underline">Home</a>
             <a href="/features" className="hover:underline">Features</a>
             <a href="/pricing" className="hover:underline">Pricing & Plans</a>
@@ -54,7 +54,7 @@ export default function Footer() {
             <a href="/terms" className="hover:underline">Terms of Service</a>
           </div>
           {/* Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-white py-8 border-t border-b border-gray-800 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-white py-8 border-t border-b border-gray-800 mb-4 text-center sm:text-left">
             {/* Platform */}
             <div>
               <div className="text-yellow-400 font-bold mb-3">Platform</div>
@@ -101,7 +101,7 @@ export default function Footer() {
             </div>
           </div>
           {/* Social Icons */}
-          <div className="flex gap-4 justify-center mb-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
             <a href="#" title="Twitter" className="text-yellow-400 hover:text-white text-2xl" aria-label="Twitter">
               <svg fill="currentColor" viewBox="0 0 24 24" width="28" height="28"><path d="M22.46 6c-.77.35-1.6.58-2.47.69a4.3 4.3 0 0 0 1.88-2.37 8.59 8.59 0 0 1-2.72 1.04A4.28 4.28 0 0 0 16.11 4c-2.37 0-4.29 1.92-4.29 4.29 0 .34.04.67.11.99C7.69 9.13 4.07 7.38 1.64 4.7c-.37.64-.58 1.39-.58 2.19 0 1.51.77 2.85 1.95 3.63-.72-.02-1.4-.22-1.99-.55v.06c0 2.11 1.5 3.87 3.5 4.27-.36.1-.74.16-1.13.16-.28 0-.54-.03-.8-.08.54 1.68 2.11 2.9 3.97 2.93A8.6 8.6 0 0 1 2 19.54c-.29 0-.57-.02-.85-.05A12.13 12.13 0 0 0 8.29 21.5c7.55 0 11.68-6.26 11.68-11.68 0-.18-.01-.36-.02-.54A8.18 8.18 0 0 0 24 4.59a8.36 8.36 0 0 1-2.54.7z"/></svg>
             </a>

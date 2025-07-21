@@ -475,276 +475,275 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
-          <p className="text-gray-600 mt-2">Generate and download comprehensive reports</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col">
+      <div className="max-w-7xl w-full py-12 px-4 mx-auto space-y-8">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-extrabold text-gray-900 drop-shadow mb-2">Reports & Analytics</h1>
+          {/* Add any top-level actions here if needed */}
         </div>
-      </div>
 
-      {/* Report Types */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {reportTypes.map((report) => {
-          const Icon = report.icon;
-          const isSelected = selectedReport === report.id;
-          
-          return (
-            <Card 
-              key={report.id} 
-              className={`cursor-pointer transition-all ${
-                isSelected ? 'ring-2 ring-indigo-500 bg-indigo-50' : 'hover:shadow-md'
-              }`}
-              onClick={() => setSelectedReport(report.id)}
-            >
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${
-                    isSelected ? 'bg-indigo-100' : 'bg-gray-100'
-                  }`}>
-                    <Icon className={`h-5 w-5 ${
-                      isSelected ? 'text-indigo-600' : 'text-gray-600'
-                    }`} />
+        {/* Report Types */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {reportTypes.map((report) => {
+            const Icon = report.icon;
+            const isSelected = selectedReport === report.id;
+            
+            return (
+              <Card 
+                key={report.id} 
+                className={`cursor-pointer transition-all ${
+                  isSelected ? 'ring-2 ring-indigo-500 bg-indigo-50' : 'hover:shadow-md'
+                }`}
+                onClick={() => setSelectedReport(report.id)}
+              >
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${
+                      isSelected ? 'bg-indigo-100' : 'bg-gray-100'
+                    }`}>
+                      <Icon className={`h-5 w-5 ${
+                        isSelected ? 'text-indigo-600' : 'text-gray-600'
+                      }`} />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{report.name}</CardTitle>
+                      <p className="text-sm text-gray-500">{report.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-base">{report.name}</CardTitle>
-                    <p className="text-sm text-gray-500">{report.description}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-1">
+                    {report.format.map((format) => (
+                      <span 
+                        key={format} 
+                        className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                      >
+                        {format}
+                      </span>
+                    ))}
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-1">
-                  {report.format.map((format) => (
-                    <span 
-                      key={format} 
-                      className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
-                    >
-                      {format}
-                    </span>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
 
-      {/* Report Configuration */}
-      {selectedReport && (
-        <Card>
+        {/* Report Configuration */}
+        {selectedReport && (
+          <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+            <CardHeader>
+              <CardTitle>Generate Report</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Report Type
+                  </label>
+                  <Select value={selectedReport} onValueChange={setSelectedReport}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {reportTypes.map((report) => (
+                        <SelectItem key={report.id} value={report.id}>
+                          {report.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Format
+                  </label>
+                  <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select format" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableFormats().map((format) => (
+                        <SelectItem key={format} value={format}>
+                          {format}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date Range
+                  </label>
+                  <Select value={dateRange} onValueChange={setDateRange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">Last 7 days</SelectItem>
+                      <SelectItem value="30">Last 30 days</SelectItem>
+                      <SelectItem value="90">Last 90 days</SelectItem>
+                      <SelectItem value="365">Last year</SelectItem>
+                      <SelectItem value="all">All time</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <Button 
+                  onClick={handleGenerateReport}
+                  disabled={!selectedReport || !selectedFormat || generating}
+                  className="flex items-center gap-2"
+                >
+                  {generating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      Generate Report
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recent Reports */}
+        <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
           <CardHeader>
-            <CardTitle>Generate Report</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Recent Reports
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Report Type
-                </label>
-                <Select value={selectedReport} onValueChange={setSelectedReport}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {reportTypes.map((report) => (
-                      <SelectItem key={report.id} value={report.id}>
-                        {report.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Format
-                </label>
-                <Select value={selectedFormat} onValueChange={setSelectedFormat}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select format" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getAvailableFormats().map((format) => (
-                      <SelectItem key={format} value={format}>
-                        {format}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date Range
-                </label>
-                <Select value={dateRange} onValueChange={setDateRange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7">Last 7 days</SelectItem>
-                    <SelectItem value="30">Last 30 days</SelectItem>
-                    <SelectItem value="90">Last 90 days</SelectItem>
-                    <SelectItem value="365">Last year</SelectItem>
-                    <SelectItem value="all">All time</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <Button 
-                onClick={handleGenerateReport}
-                disabled={!selectedReport || !selectedFormat || generating}
-                className="flex items-center gap-2"
-              >
-                {generating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4" />
-                    Generate Report
-                  </>
-                )}
-              </Button>
+            <div className="space-y-4">
+              {generatedReports.map((report) => (
+                <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <div className="font-semibold">{report.name}</div>
+                      <div className="text-xs text-muted-foreground">{report.generatedAt}</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                      onClick={() => setPreviewReport(report)}
+                    >
+                      Preview
+                    </button>
+                    <button
+                      className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                      onClick={() => handleDownloadCSVFromList(report)}
+                      type="button"
+                    >
+                      Download
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Recent Reports */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Recent Reports
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {generatedReports.map((report) => (
-              <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <div className="font-semibold">{report.name}</div>
-                    <div className="text-xs text-muted-foreground">{report.generatedAt}</div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                    onClick={() => setPreviewReport(report)}
-                  >
-                    Preview
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
-                    onClick={() => handleDownloadCSVFromList(report)}
-                    type="button"
-                  >
-                    Download
-                  </button>
-                </div>
+        {/* Report Preview Modal */}
+        <Dialog open={!!previewReport} onOpenChange={() => setPreviewReport(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Report Preview</DialogTitle>
+              <DialogDescription>
+                This modal previews the selected admin report with real data.
+              </DialogDescription>
+            </DialogHeader>
+            {previewReport && (
+              <div className="space-y-2">
+                <div className="font-semibold">{previewReport.name} ({previewReport.format})</div>
+                <div className="text-xs text-gray-500 mb-2">Generated {formatDate(previewReport.generatedAt)}</div>
+                {reportLoading && <div className="text-center py-4">Loading...</div>}
+                {reportError && <div className="text-center text-red-600 py-4">{reportError}</div>}
+                {!reportLoading && !reportError && getMockReportData(previewReport)}
+                <DialogClose asChild>
+                  <Button variant="outline" className="mt-4 w-full">Close</Button>
+                </DialogClose>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            )}
+          </DialogContent>
+        </Dialog>
 
-      {/* Report Preview Modal */}
-      <Dialog open={!!previewReport} onOpenChange={() => setPreviewReport(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Report Preview</DialogTitle>
-            <DialogDescription>
-              This modal previews the selected admin report with real data.
-            </DialogDescription>
-          </DialogHeader>
-          {previewReport && (
-            <div className="space-y-2">
-              <div className="font-semibold">{previewReport.name} ({previewReport.format})</div>
-              <div className="text-xs text-gray-500 mb-2">Generated {formatDate(previewReport.generatedAt)}</div>
-              {reportLoading && <div className="text-center py-4">Loading...</div>}
-              {reportError && <div className="text-center text-red-600 py-4">{reportError}</div>}
-              {!reportLoading && !reportError && getMockReportData(previewReport)}
-              <DialogClose asChild>
-                <Button variant="outline" className="mt-4 w-full">Close</Button>
-              </DialogClose>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+        {/* Report Templates */}
+        <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+          <CardHeader>
+            <CardTitle>Report Templates</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium mb-2">Monthly Executive Summary</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  High-level overview of key metrics for executive review
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleUseTemplate('Monthly Executive Summary')}
+                >
+                  Use Template
+                </Button>
+              </div>
 
-      {/* Report Templates */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Report Templates</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border rounded-lg p-4">
-              <h4 className="font-medium mb-2">Monthly Executive Summary</h4>
-              <p className="text-sm text-gray-600 mb-3">
-                High-level overview of key metrics for executive review
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleUseTemplate('Monthly Executive Summary')}
-              >
-                Use Template
-              </Button>
-            </div>
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium mb-2">Weekly Operations Report</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  Detailed operational metrics and user activity
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleUseTemplate('Weekly Operations Report')}
+                >
+                  Use Template
+                </Button>
+              </div>
 
-            <div className="border rounded-lg p-4">
-              <h4 className="font-medium mb-2">Weekly Operations Report</h4>
-              <p className="text-sm text-gray-600 mb-3">
-                Detailed operational metrics and user activity
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleUseTemplate('Weekly Operations Report')}
-              >
-                Use Template
-              </Button>
-            </div>
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium mb-2">Quarterly Business Review</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  Comprehensive quarterly performance analysis
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleUseTemplate('Quarterly Business Review')}
+                >
+                  Use Template
+                </Button>
+              </div>
 
-            <div className="border rounded-lg p-4">
-              <h4 className="font-medium mb-2">Quarterly Business Review</h4>
-              <p className="text-sm text-gray-600 mb-3">
-                Comprehensive quarterly performance analysis
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleUseTemplate('Quarterly Business Review')}
-              >
-                Use Template
-              </Button>
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium mb-2">Custom Report Builder</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  Create custom reports with specific metrics
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleUseTemplate('Custom Report Builder')}
+                >
+                  Create Custom
+                </Button>
+              </div>
             </div>
-
-            <div className="border rounded-lg p-4">
-              <h4 className="font-medium mb-2">Custom Report Builder</h4>
-              <p className="text-sm text-gray-600 mb-3">
-                Create custom reports with specific metrics
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleUseTemplate('Custom Report Builder')}
-              >
-                Create Custom
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 } 

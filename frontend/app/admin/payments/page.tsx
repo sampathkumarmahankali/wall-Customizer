@@ -296,302 +296,308 @@ export default function PaymentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0]">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Payment Analytics</h1>
-          <p className="text-gray-600 mt-2">Monitor revenue and subscription data</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] flex flex-col">
+      <div className="max-w-7xl w-full py-12 px-4 mx-auto space-y-8">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-extrabold text-gray-900 drop-shadow mb-2">Payments & Plans</h1>
+          {/* Add any top-level actions here if needed */}
         </div>
-        <Button 
-          onClick={() => handleQuickAction('export')}
-          className="flex items-center gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Export Report
-        </Button>
-      </div>
-
-      {/* Revenue Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('analytics')}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(paymentData?.totalRevenue || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              All time revenue
-            </p>
-            <div className="flex items-center mt-2 text-xs text-blue-600">
-              <span>View analytics</span>
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('analytics')}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(paymentData?.monthlyRevenue || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              This month
-            </p>
-            <div className="flex items-center mt-2 text-xs text-blue-600">
-              <span>View trends</span>
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('analytics')}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subscription Revenue</CardTitle>
-            <CreditCard className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(paymentData?.subscriptionRevenue || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Recurring revenue
-            </p>
-            <div className="flex items-center mt-2 text-xs text-blue-600">
-              <span>View details</span>
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('subscribers')}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
-            <Users className="h-4 w-4 text-indigo-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {paymentData?.paymentMethods.reduce((acc, method) => acc + method.count, 0) || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Paying customers
-            </p>
-            <div className="flex items-center mt-2 text-xs text-blue-600">
-              <span>View subscribers</span>
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Payment Methods */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Payment Methods
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {paymentData?.paymentMethods && paymentData.paymentMethods.length > 0 ? (
-            <div className="space-y-4">
-              {paymentData.paymentMethods.map((method, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                      <CreditCard className="h-5 w-5 text-gray-600" />
-                    </div>
-                    <div>
-                      <div className="font-medium">{method.method}</div>
-                      <div className="text-sm text-gray-500">{method.count} transactions</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium">{formatCurrency(method.amount)}</div>
-                    <div className="text-sm text-gray-500">
-                      {((method.amount / (paymentData.totalRevenue || 1)) * 100).toFixed(1)}% of total
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No payment data</h3>
-              <p className="text-gray-500">Payment analytics will appear here when transactions occur.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Revenue Chart Placeholder */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Revenue Trend
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="text-center">
-              <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Revenue Chart</h3>
-              <p className="text-gray-500">Chart will display revenue trends over time</p>
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Payment Analytics</h1>
+            <p className="text-gray-600 mt-2">Monitor revenue and subscription data</p>
           </div>
-        </CardContent>
-      </Card>
+          <Button 
+            onClick={() => handleQuickAction('export')}
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export Report
+          </Button>
+        </div>
 
-      {/* Subscription Plans Management */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Subscription Plans</CardTitle>
-          <Button onClick={handleAddPlan}>Add Plan</Button>
-        </CardHeader>
-        <CardContent>
-          {loadingPlans ? (
-            <div>Loading plans...</div>
-          ) : plans.length === 0 ? (
-            <div>No plans found.</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {plans.map((plan) => (
-                <div key={plan.id} className="border rounded-lg p-6 text-center relative group bg-white">
-                  <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button size="sm" variant="outline" onClick={() => handleEditPlan(plan)}>Edit</Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDeletePlan(plan.id)}>Delete</Button>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">{plan.name}</h3>
-                  <div className="text-3xl font-bold text-gray-900 mb-2">{formatINR(Number(plan.price))}</div>
-                  <div className="text-gray-600 mb-2">Session Limit: {plan.session_limit}</div>
-                  <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                    {(plan.features || []).map((b: string, i: number) => (
-                      <li key={i}>• {b}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      {/* Plan Modal */}
-      <Dialog open={showPlanModal} onOpenChange={setShowPlanModal}>
-        <DialogContent className="max-w-lg mx-auto">
-          <DialogHeader>
-            <DialogTitle>{editingPlan?.id ? "Edit Plan" : "Add Plan"}</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-4">
-            <Input
-              placeholder="Plan Name"
-              value={editingPlan?.name || ""}
-              onChange={e => setEditingPlan({ ...editingPlan, name: e.target.value })}
-            />
-            <Input
-              type="number"
-              placeholder="Price"
-              value={editingPlan?.price || 0}
-              onChange={e => setEditingPlan({ ...editingPlan, price: Number(e.target.value) })}
-            />
-            <Input
-              type="number"
-              placeholder="Session Limit"
-              value={editingPlan?.session_limit || 0}
-              onChange={e => setEditingPlan({ ...editingPlan, session_limit: Number(e.target.value) })}
-            />
-            <div>
-              <div className="font-semibold mb-2">Features</div>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  placeholder="Add feature"
-                  value={newFeature}
-                  onChange={e => setNewFeature(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleAddFeature(); }}
-                />
-                <Button onClick={handleAddFeature}>Add</Button>
+        {/* Revenue Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('analytics')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(paymentData?.totalRevenue || 0)}
               </div>
-              <ul className="space-y-2">
-                {(editingPlan?.features || []).map((b: string, i: number) => (
-                  <li key={i} className="flex items-center gap-2">
-                    {featureEditIdx === i ? (
-                      <>
-                        <Input
-                          value={featureEditValue}
-                          onChange={e => setFeatureEditValue(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter') handleSaveFeatureEdit(); }}
-                        />
-                        <Button size="sm" onClick={handleSaveFeatureEdit}>Save</Button>
-                        <Button size="sm" variant="destructive" onClick={() => setFeatureEditIdx(null)}>Cancel</Button>
-                      </>
-                    ) : (
-                      <>
-                        <span>{b}</span>
-                        <Button size="sm" variant="outline" onClick={() => handleEditFeature(i)}>Edit</Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDeleteFeature(i)}>Delete</Button>
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <Button variant="outline" onClick={() => setShowPlanModal(false)}>Cancel</Button>
-              <Button onClick={handleSavePlan}>{editingPlan?.id ? "Update" : "Add"} Plan</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+              <p className="text-xs text-muted-foreground">
+                All time revenue
+              </p>
+              <div className="flex items-center mt-2 text-xs text-blue-600">
+                <span>View analytics</span>
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col items-center justify-center hover:bg-green-50 hover:border-green-300 transition-colors"
-              onClick={() => handleQuickAction('export')}
-            >
-              <Download className="h-6 w-6 mb-2" />
-              Export Revenue Report
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
-              onClick={() => handleQuickAction('subscribers')}
-            >
-              <Users className="h-6 w-6 mb-2" />
-              View Subscribers
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-20 flex flex-col items-center justify-center hover:bg-purple-50 hover:border-purple-300 transition-colors"
-              onClick={() => handleQuickAction('history')}
-            >
-              <Calendar className="h-6 w-6 mb-2" />
-              Payment History
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('analytics')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(paymentData?.monthlyRevenue || 0)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This month
+              </p>
+              <div className="flex items-center mt-2 text-xs text-blue-600">
+                <span>View trends</span>
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('analytics')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Subscription Revenue</CardTitle>
+              <CreditCard className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(paymentData?.subscriptionRevenue || 0)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Recurring revenue
+              </p>
+              <div className="flex items-center mt-2 text-xs text-blue-600">
+                <span>View details</span>
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleQuickAction('subscribers')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
+              <Users className="h-4 w-4 text-indigo-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {paymentData?.paymentMethods.reduce((acc, method) => acc + method.count, 0) || 0}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Paying customers
+              </p>
+              <div className="flex items-center mt-2 text-xs text-blue-600">
+                <span>View subscribers</span>
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Payment Methods */}
+        <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Payment Methods
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {paymentData?.paymentMethods && paymentData.paymentMethods.length > 0 ? (
+              <div className="space-y-4">
+                {paymentData.paymentMethods.map((method, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                        <CreditCard className="h-5 w-5 text-gray-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium">{method.method}</div>
+                        <div className="text-sm text-gray-500">{method.count} transactions</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium">{formatCurrency(method.amount)}</div>
+                      <div className="text-sm text-gray-500">
+                        {((method.amount / (paymentData.totalRevenue || 1)) * 100).toFixed(1)}% of total
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No payment data</h3>
+                <p className="text-gray-500">Payment analytics will appear here when transactions occur.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Revenue Chart Placeholder */}
+        <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Revenue Trend
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+              <div className="text-center">
+                <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Revenue Chart</h3>
+                <p className="text-gray-500">Chart will display revenue trends over time</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Subscription Plans Management */}
+        <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Subscription Plans</CardTitle>
+            <Button onClick={handleAddPlan}>Add Plan</Button>
+          </CardHeader>
+          <CardContent>
+            {loadingPlans ? (
+              <div>Loading plans...</div>
+            ) : plans.length === 0 ? (
+              <div>No plans found.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {plans.map((plan) => (
+                  <div key={plan.id} className="border rounded-lg p-6 text-center relative group bg-white">
+                    <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button size="sm" variant="outline" onClick={() => handleEditPlan(plan)}>Edit</Button>
+                      <Button size="sm" variant="destructive" onClick={() => handleDeletePlan(plan.id)}>Delete</Button>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">{plan.name}</h3>
+                    <div className="text-3xl font-bold text-gray-900 mb-2">{formatINR(Number(plan.price))}</div>
+                    <div className="text-gray-600 mb-2">Session Limit: {plan.session_limit}</div>
+                    <ul className="text-sm text-gray-600 space-y-2 mb-6">
+                      {(plan.features || []).map((b: string, i: number) => (
+                        <li key={i}>• {b}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        {/* Plan Modal */}
+        <Dialog open={showPlanModal} onOpenChange={setShowPlanModal}>
+          <DialogContent className="max-w-lg mx-auto">
+            <DialogHeader>
+              <DialogTitle>{editingPlan?.id ? "Edit Plan" : "Add Plan"}</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4">
+              <Input
+                placeholder="Plan Name"
+                value={editingPlan?.name || ""}
+                onChange={e => setEditingPlan({ ...editingPlan, name: e.target.value })}
+              />
+              <Input
+                type="number"
+                placeholder="Price"
+                value={editingPlan?.price || 0}
+                onChange={e => setEditingPlan({ ...editingPlan, price: Number(e.target.value) })}
+              />
+              <Input
+                type="number"
+                placeholder="Session Limit"
+                value={editingPlan?.session_limit || 0}
+                onChange={e => setEditingPlan({ ...editingPlan, session_limit: Number(e.target.value) })}
+              />
+              <div>
+                <div className="font-semibold mb-2">Features</div>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    placeholder="Add feature"
+                    value={newFeature}
+                    onChange={e => setNewFeature(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleAddFeature(); }}
+                  />
+                  <Button onClick={handleAddFeature}>Add</Button>
+                </div>
+                <ul className="space-y-2">
+                  {(editingPlan?.features || []).map((b: string, i: number) => (
+                    <li key={i} className="flex items-center gap-2">
+                      {featureEditIdx === i ? (
+                        <>
+                          <Input
+                            value={featureEditValue}
+                            onChange={e => setFeatureEditValue(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleSaveFeatureEdit(); }}
+                          />
+                          <Button size="sm" onClick={handleSaveFeatureEdit}>Save</Button>
+                          <Button size="sm" variant="destructive" onClick={() => setFeatureEditIdx(null)}>Cancel</Button>
+                        </>
+                      ) : (
+                        <>
+                          <span>{b}</span>
+                          <Button size="sm" variant="outline" onClick={() => handleEditFeature(i)}>Edit</Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleDeleteFeature(i)}>Delete</Button>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button variant="outline" onClick={() => setShowPlanModal(false)}>Cancel</Button>
+                <Button onClick={handleSavePlan}>{editingPlan?.id ? "Update" : "Add"} Plan</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Quick Actions */}
+        <Card className="rounded-2xl shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center hover:bg-green-50 hover:border-green-300 transition-colors"
+                onClick={() => handleQuickAction('export')}
+              >
+                <Download className="h-6 w-6 mb-2" />
+                Export Revenue Report
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                onClick={() => handleQuickAction('subscribers')}
+              >
+                <Users className="h-6 w-6 mb-2" />
+                View Subscribers
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col items-center justify-center hover:bg-purple-50 hover:border-purple-300 transition-colors"
+                onClick={() => handleQuickAction('history')}
+              >
+                <Calendar className="h-6 w-6 mb-2" />
+                Payment History
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 } 

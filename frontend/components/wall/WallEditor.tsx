@@ -450,7 +450,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const users = await res.json();
-      setAllUsers(users);
+      setAllUsers(Array.isArray(users) ? users : []);
     } catch (err) {
       setAllUsers([]);
     }
@@ -560,58 +560,97 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
 
         <div className="max-w-7xl mx-auto p-2">
           {/* Enhanced floating toolbar */}
-          <div className="mb-4 flex justify-center">
+          <div className="mb-4 justify-center hidden sm:flex">
             <div className="backdrop-blur-xl bg-white/60 shadow-2xl rounded-full px-6 py-3 flex gap-3 items-center border border-[#FFD700]/20" style={{ minWidth: 320, maxWidth: 900 }}>
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
+              <Button
+                onClick={() => fileInputRef.current?.click()}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-                  >
+              >
                 <Upload className="h-5 w-5" /> Add Images
-                  </Button>
-                  <Button
-                    onClick={() => setShowSampleDialog(true)}
+              </Button>
+              <Button
+                onClick={() => setShowSampleDialog(true)}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-                  >
+              >
                 <ImageIcon className="h-5 w-5" /> Decors
-                  </Button>
-                  <Button
-                    onClick={() => setShowImageEditor(!showImageEditor)}
+              </Button>
+              <Button
+                onClick={() => setShowImageEditor(!showImageEditor)}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-                  >
+              >
                 <Edit className="h-5 w-5" /> {showImageEditor ? "Hide" : "Edit"} Images
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      if (plan === 'basic') {
-                        setShowUpgradeModal(true);
-                      } else {
-                        setShowTools(!showTools);
-                      }
-                    }}
+              </Button>
+              <Button
+                onClick={() => {
+                  if (plan === 'basic') {
+                    setShowUpgradeModal(true);
+                  } else {
+                    setShowTools(!showTools);
+                  }
+                }}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-                  >
+              >
                 <Sparkles className="h-5 w-5" /> Tools
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      if (plan === 'basic') {
-                        setShowUpgradeModal(true);
-                      } else {
-                        setShowExportDialog(true);
-                      }
-                    }}
+              </Button>
+              <Button
+                onClick={() => {
+                  if (plan === 'basic') {
+                    setShowUpgradeModal(true);
+                  } else {
+                    setShowExportDialog(true);
+                  }
+                }}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-                  >
+              >
                 <Download className="h-5 w-5" /> Export
-                  </Button>
-                  <Button
-                    onClick={() => setShowSettings(true)}
+              </Button>
+              <Button
+                onClick={() => setShowSettings(true)}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
-                  >
+              >
                 <Settings className="h-5 w-5" /> Wall Settings
-                  </Button>
-                </div>
-              </div>
+              </Button>
+            </div>
+          </div>
+          {/* Mobile Navigation Menu */}
+          <nav className="fixed bottom-0 left-0 w-full z-50 flex sm:hidden bg-gradient-to-r from-[#FFF8E1] via-[#FFF3E0] to-[#FDEBD0] border-t border-[#FFD700]/30 shadow-2xl px-2 py-1 justify-between items-center">
+            <button className="flex flex-col items-center flex-1 py-2" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-7 w-7 mb-1 text-[#8e44ad]" />
+              <span className="text-xs font-semibold">Add</span>
+            </button>
+            <button className="flex flex-col items-center flex-1 py-2" onClick={() => setShowSampleDialog(true)}>
+              <ImageIcon className="h-7 w-7 mb-1 text-[#C71585]" />
+              <span className="text-xs font-semibold">Decors</span>
+            </button>
+            <button className="flex flex-col items-center flex-1 py-2" onClick={() => setShowImageEditor(!showImageEditor)}>
+              <Edit className="h-7 w-7 mb-1 text-[#FF9800]" />
+              <span className="text-xs font-semibold">Edit</span>
+            </button>
+            <button className="flex flex-col items-center flex-1 py-2" onClick={() => {
+              if (plan === 'basic') {
+                setShowUpgradeModal(true);
+              } else {
+                setShowTools(!showTools);
+              }
+            }}>
+              <Sparkles className="h-7 w-7 mb-1 text-[#FFD700]" />
+              <span className="text-xs font-semibold">Tools</span>
+            </button>
+            <button className="flex flex-col items-center flex-1 py-2" onClick={() => {
+              if (plan === 'basic') {
+                setShowUpgradeModal(true);
+              } else {
+                setShowExportDialog(true);
+              }
+            }}>
+              <Download className="h-7 w-7 mb-1 text-[#3b82f6]" />
+              <span className="text-xs font-semibold">Export</span>
+            </button>
+            <button className="flex flex-col items-center flex-1 py-2" onClick={() => setShowSettings(true)}>
+              <Settings className="h-7 w-7 mb-1 text-[#8e44ad]" />
+              <span className="text-xs font-semibold">Settings</span>
+            </button>
+          </nav>
 
           {/* Hidden file input for image uploads */}
           <input
@@ -819,7 +858,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
           )}
 
           {/* Save Session card and Share button side by side */}
-          <div className="flex flex-col md:flex-row items-center justify-center gap-1 mt-2">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-1 mt-2 mb-24 md:mb-0">
             {/* Save Session card */}
             <Card className="w-full max-w-lg p-3 flex flex-col items-center shadow-2xl bg-gradient-to-br from-white via-[#FFF8E1] to-[#FDEBD0] border-2 border-[#FFD700]/30 rounded-3xl backdrop-blur-lg">
               <div className="w-full mb-4 flex flex-col sm:flex-row items-center sm:items-end gap-4">
@@ -919,7 +958,18 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
                                   &times;
                                 </button>
                               </span>
-                            ) : null;
+                            ) : (
+                              <span key={editorEmail} className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full flex items-center gap-1">
+                                {editorEmail}
+                                <button
+                                  className="ml-1 text-red-500 hover:text-red-700"
+                                  onClick={() => setSelectedEditors(selectedEditors.filter(email => email !== editorEmail))}
+                                  type="button"
+                                >
+                                  &times;
+                                </button>
+                              </span>
+                            );
                           })}
                         </div>
                       </div>
