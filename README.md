@@ -1,204 +1,132 @@
-# Wallora - Wall Customization App
+# MIALTAR - AI-Powered Wall Customizer
 
-A modern web application for creating and customizing image walls with drag-and-drop functionality, filters, frames, and export capabilities.
+MIALTAR is a modern web application for designing and customizing image walls. It offers a seamless drag-and-drop experience, AI-powered image editing, advanced filtering, and robust user management, making it ideal for creating personalized wall art.
+
+## Key Features
+
+### Core User Features
+- **Intuitive Wall Creator**: Set custom wall dimensions, backgrounds, and colors.
+- **Drag-and-Drop Editor**: Easily upload, resize, and position images on the wall.
+- **Advanced Image Editing**: Apply filters (brightness, contrast, etc.), shapes, frames, and borders.
+- **AI-Powered Background Removal**: Automatically remove backgrounds from uploaded images.
+- **Collage Creation**: Combine multiple images into a single collage element.
+- **Secure Authentication**: User registration, login, email verification, and password reset.
+- **Profile Management**: Update profile information and change passwords.
+- **Export Options**: Export final designs as PNG, JPG, or PDF.
+
+### Admin Dashboard
+- **Comprehensive Analytics**: Track user registrations, active sessions, and revenue.
+- **User Management**: View, search, and manage all registered users.
+- **Subscription Plan Management**: Create, edit, and delete subscription plans (e.g., Premium, Ultra).
+- **Content Moderation**: (Future-ready) A dedicated section for moderating user-generated content.
+- **Revenue Tracking**: Monitor total revenue, monthly income, and subscription payments.
 
 ## Project Structure
 
 ```
 wall-Customizer/
-├── frontend/                 # Next.js Frontend Application
-│   ├── app/                  # Next.js 13+ App Router
-│   │   ├── page.tsx         # Landing page (redirects to /create or /login)
-│   │   ├── create/
-│   │   │   └── page.tsx     # Wall creation form
-│   │   ├── editor/
-│   │   │   └── page.tsx     # Wall editor/customizer
+├── frontend/
+│   ├── app/
+│   │   ├── admin/              # Admin Dashboard
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── users/
+│   │   │   ├── payments/
+│   │   │   ├── reports/
+│   │   │   └── moderation/
+│   │   ├── create/             # Wall creation page
+│   │   ├── editor/             # Wall editor page
 │   │   ├── login/
-│   │   │   └── page.tsx     # User login
 │   │   ├── register/
-│   │   │   └── page.tsx     # User registration
-│   │   └── profile/
-│   │       └── page.tsx     # User profile management
+│   │   ├── profile/
+│   │   └── page.tsx            # Home page
 │   ├── components/
-│   │   ├── wall/            # Wall-related components
-│   │   │   ├── WallCreator.tsx
-│   │   │   └── WallEditor.tsx
-│   │   ├── auth/            # Authentication components
-│   │   │   ├── LoginForm.tsx
-│   │   │   ├── RegisterForm.tsx
-│   │   │   └── ProfileForm.tsx
-│   │   ├── ui/              # Reusable UI components (shadcn/ui)
-│   │   └── shared/          # Shared components
-│   ├── lib/
-│   │   ├── constants.ts     # App constants
-│   │   └── utils.ts         # Utility functions
-│   └── public/              # Static assets
-│       ├── samples/         # Sample images
-│       └── walls/           # Wall backgrounds
-└── backend/                 # Node.js/Express Backend
-    ├── server/
-    │   ├── index.js         # Main server file
-    │   ├── db.js            # Database connection
-    │   └── routes/
-    │       └── auth.js      # Authentication routes
-    └── package.json         # Backend dependencies
+│   │   ├── auth/               # Auth-related components
+│   │   ├── ui/                 # Shadcn UI components
+│   │   ├── shared/             # Header, Footer, etc.
+│   │   ├── wall/               # Wall-specific components
+│   │   └── ai/                 # AI-related components
+│   └── lib/
+│       ├── auth.ts
+│       └── utils.ts
+└── backend/
+    ├── config/                 # Configuration files
+    ├── middleware/             # Express middleware
+    ├── routes/                 # API routes
+    │   ├── auth.js
+    │   ├── admin.js
+    │   ├── plans.js
+    │   ├── ai.js
+    │   ├── session.js
+    │   ├── email.js
+    │   └── ...
+    ├── services/               # Business logic services
+    └── index.js                # Main server entry point
 ```
-
-## Features
-
-### Frontend Features
-- **Wall Creation**: Set wall dimensions, background, and color
-- **Image Management**: Upload, drag, resize, and position images
-- **Image Editing**: Apply filters, shapes, frames, and borders
-- **Collage Creation**: Combine multiple images into collages
-- **Export Options**: Export as PNG, JPG, or PDF
-- **User Authentication**: Login, registration, and profile management
-- **Responsive Design**: Works on desktop and mobile devices
-
-### Backend Features
-- **User Authentication**: Register, login, and password management
-- **MySQL Database**: User data storage
-- **RESTful API**: Clean API endpoints
-- **Security**: Password verification and validation
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- MySQL database
-- npm or yarn
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-```bash
-cd frontend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the development server:
-```bash
-npm run dev
-```
-
-The frontend will be available at `http://localhost:3000`
+- Node.js (v18 or higher recommended)
+- MySQL
+- An account with an AI service provider (for background removal)
 
 ### Backend Setup
+1.  Navigate to the `backend` directory: `cd backend`
+2.  Install dependencies: `npm install`
+3.  Create a `.env` file and configure your database and JWT secret:
+    ```env
+    PORT=4000
+    JWT_SECRET=your_jwt_secret_key
+    MYSQL_HOST=localhost
+    MYSQL_USER=root
+    MYSQL_PASSWORD=your_password
+    MYSQL_DATABASE=your_database_name
+    ```
+4.  Set up the database schema by executing the SQL queries found in the `migrations` folder (if applicable).
+5.  Start the server: `npm run dev` (uses nodemon)
 
-1. Navigate to the backend directory:
-```bash
-cd backend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up your MySQL database:
-```sql
-CREATE DATABASE wallora_db;
-```
-
-4. Configure environment variables (optional):
-```bash
-# Create .env file
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=wallora_db
-```
-
-5. Start the backend server:
-```bash
-npm run dev
-```
-
-The backend API will be available at `http://localhost:3001`
+### Frontend Setup
+1.  Navigate to the `frontend` directory: `cd frontend`
+2.  Install dependencies: `npm install`
+3.  Start the development server: `npm run dev`
+4.  The application will be available at `http://localhost:3000`.
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/update-password` - Update user password
-- `POST /api/auth/verify-password` - Verify current password
+### Authentication (`/api/auth`)
+- `POST /register`: Register a new user.
+- `POST /login`: Log in a user and get a JWT token.
+- `POST /update-password`: Update the current user's password.
+- `POST /verify-email`: Verify a user's email with a code.
+- `GET /profile`: Get the authenticated user's profile.
+- `POST /upload-profile-photo`: Upload a new profile photo (base64).
+- `DELETE /remove-profile-photo`: Remove the current profile photo.
 
-### Health Check
-- `GET /api/health` - Server health status
+### Admin (`/api/admin`)
+- `GET /dashboard`: Get statistics for the admin dashboard.
+- `GET /analytics`: Get analytics data for user trends.
+- `GET /users`: Get a list of all users.
+- `GET /payments`: Get payment and revenue data.
+- `POST /export/users`: Export user data to a CSV file.
 
-## Component Architecture
+### Plans (`/api/plans`)
+- `GET /`: Get all subscription plans.
+- `POST /`: Create a new subscription plan.
+- `PUT /:id`: Update an existing plan.
+- `DELETE /:id`: Delete a plan.
 
-### Wall Components
-- **WallCreator**: Handles wall setup and configuration
-- **WallEditor**: Main wall editing interface with image management
+### AI Services (`/api/ai`)
+- `POST /remove-background`: Remove the background from an image.
+- `GET /status`: Check the availability of AI services.
 
-### Authentication Components
-- **LoginForm**: User login with email/password
-- **RegisterForm**: User registration with validation
-- **ProfileForm**: Profile management and password changes
+## Technologies Used
 
-### Shared Components
-- **Wall**: Renders the wall background and container
-- **ImageBlock**: Individual image with drag/resize functionality
-- **ImageEditor**: Sidebar for image editing tools
-- **WallSettings**: Dialog for wall configuration
-- **ExportDialog**: Export options and functionality
-
-## State Management
-
-The application uses React's built-in state management:
-- **Local State**: Component-specific state using `useState`
-- **LocalStorage**: Persists wall settings and user authentication
-- **Props**: Data flow between parent and child components
-
-## File Organization Benefits
-
-### Separation of Concerns
-- **Frontend/Backend**: Clear separation between client and server code
-- **Component-Based**: Reusable components organized by functionality
-- **Route-Based**: Each page has its own directory and component
-
-### Maintainability
-- **Modular Components**: Easy to update and maintain individual features
-- **Clear Structure**: Intuitive file organization
-- **Type Safety**: TypeScript interfaces for better development experience
-
-### Scalability
-- **Extensible Architecture**: Easy to add new features and components
-- **API-First Design**: Backend ready for additional endpoints
-- **Component Reusability**: Shared components across different pages
-
-## Development Workflow
-
-1. **Frontend Development**: Work in the `frontend/` directory
-2. **Backend Development**: Work in the `backend/` directory
-3. **Database Changes**: Update `backend/server/db.js` for schema changes
-4. **New Features**: Create new components in appropriate directories
-5. **Testing**: Test both frontend and backend independently
-
-## Deployment
-
-### Frontend Deployment
-- Build the Next.js app: `npm run build`
-- Deploy to Vercel, Netlify, or any static hosting service
-
-### Backend Deployment
-- Set up environment variables for production
-- Deploy to Heroku, Railway, or any Node.js hosting service
-- Configure MySQL database connection
-
-## Contributing
-
-1. Follow the established file structure
-2. Create components in appropriate directories
-3. Use TypeScript for better type safety
-4. Test both frontend and backend functionality
-5. Update documentation for new features
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Node.js, Express.js
+- **Database**: MySQL
+- **Authentication**: JWT (JSON Web Tokens)
+- **File Uploads**: Base64 with Multer for AI services
 
 ## License
 

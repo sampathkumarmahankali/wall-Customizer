@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const { v4: uuidv4 } = require('uuid');
 
 // Create or update a session
 router.post('/sessions', async (req, res) => {
@@ -34,12 +35,9 @@ router.post('/sessions', async (req, res) => {
       await pool.query('UPDATE edit_sessions SET name = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [sessionName, jsonString, sessionId]);
       return res.json({ message: 'Session updated', sessionId });
     } else {
-      // Create new session
-      const [result] = await pool.query('INSERT INTO edit_sessions (user_id, name, data) VALUES (?, ?, ?)', [userId, sessionName || 'session 1', jsonString]);
-      const newId = result.insertId;
-      if (!sessionName) {
-        await pool.query('UPDATE edit_sessions SET name = ? WHERE id = ?', [`session ${newId}`, newId]);
-      }
+      // Create new session with UUID
+      const newId = uuidv4();
+      await pool.query('INSERT INTO edit_sessions (id, user_id, name, data) VALUES (?, ?, ?, ?)', [newId, userId, sessionName || `session ${newId}`, jsonString]);
       return res.json({ message: 'Session created', sessionId: newId });
     }
   } catch (err) {

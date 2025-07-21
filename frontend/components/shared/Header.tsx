@@ -16,14 +16,15 @@ export default function Header({ showLogout = true, showProfile = true, classNam
   const router = useRouter();
   const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [menuOpen, setMenuOpen] = useState<false | 'settings'>(false);
+  const [menuOpen, setMenuOpen] = useState<boolean | 'settings'>(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Helper to check login state and admin role
   const checkLogin = () => {
     if (typeof window !== "undefined") {
-      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
+      const token = localStorage.getItem("token");
+      setIsLoggedIn(!!token);
       setIsAdmin(localStorage.getItem("userRole") === "admin");
     }
   };
@@ -32,7 +33,7 @@ export default function Header({ showLogout = true, showProfile = true, classNam
     checkLogin();
     // Listen for storage changes
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === "isLoggedIn") {
+      if (e.key === "token") {
         checkLogin();
       }
     };
@@ -62,8 +63,7 @@ export default function Header({ showLogout = true, showProfile = true, classNam
   }, [menuOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userEmail");
+    localStorage.clear();
     window.location.reload();
   };
 
@@ -200,7 +200,7 @@ export default function Header({ showLogout = true, showProfile = true, classNam
           </button>
         </div>
         {/* Mobile Menu */}
-        {menuOpen && (
+        {menuOpen === true && (
           <div className="absolute top-16 left-0 w-full bg-white shadow-lg flex flex-col items-center py-4 gap-4 md:hidden z-50 border-t">
             {navLinks.map(link => (
               <button

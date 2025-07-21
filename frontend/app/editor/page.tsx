@@ -16,8 +16,8 @@ export default function EditorPage() {
 
   useEffect(() => {
     // Check if user is logged in
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn !== "true") {
+    const token = localStorage.getItem("token");
+    if (!token) {
       const currentUrl = window.location.pathname + window.location.search;
       router.replace(`/login?redirect=${encodeURIComponent(currentUrl)}`);
     }

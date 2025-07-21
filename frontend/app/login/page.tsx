@@ -38,7 +38,6 @@ export default function LoginPage() {
       if (data.token) {
         setToken(data.token);
       }
-      localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("userEmail", data.user.email)
       localStorage.setItem("userRole", data.user.role)
       const redirect = searchParams.get('redirect');

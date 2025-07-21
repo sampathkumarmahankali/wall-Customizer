@@ -8,8 +8,8 @@ export default function CreatePage() {
 
   useEffect(() => {
     // Check if user is logged in
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn !== "true") {
+    const token = localStorage.getItem("token");
+    if (!token) {
       router.replace("/login");
     }
   }, [router]);
