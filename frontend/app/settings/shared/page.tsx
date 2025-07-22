@@ -8,8 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getAllSharedSessions, updateSharedSession, deleteSharedSession, getSharedSession } from '@/lib/shared';
 import { ClipboardCopy } from 'lucide-react';
+import { isAuthenticated } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 
 export default function SharedSettingsPage() {
+  const router = useRouter();
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +30,10 @@ export default function SharedSettingsPage() {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isAuthenticated()) {
+      router.replace('/login');
+      return;
+    }
     setLoading(true);
     getAllSharedSessions()
       .then((data) => {
@@ -38,7 +45,7 @@ export default function SharedSettingsPage() {
         setSessions([]);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   // Open manage modal and load session details
   const handleManage = async (sessionId: number) => {
