@@ -1,5 +1,6 @@
 const { sgMail, emailConfig, emailTemplates } = require('../config/email-config');
 const crypto = require('crypto');
+const pool = require('../db');
 
 class EmailService {
   constructor() {
@@ -11,6 +12,12 @@ class EmailService {
    * Send welcome email to new users
    */
   async sendWelcomeEmail(userEmail, userName) {
+    // Check if welcome emails are enabled
+    const [settings] = await pool.execute('SELECT welcome_email_enabled FROM email_settings LIMIT 1');
+    if (!settings.length || !settings[0].welcome_email_enabled) {
+      console.log('Welcome email sending is disabled by admin.');
+      return { success: false, message: 'Welcome email disabled by admin' };
+    }
     try {
       const template = emailTemplates.welcome(userName);
       
@@ -58,6 +65,12 @@ class EmailService {
    * Send activity alert email
    */
   async sendActivityAlert(userEmail, userName, activityType, activityDetails) {
+    // Check if activity alert emails are enabled
+    const [settings] = await pool.execute('SELECT activity_alert_enabled FROM email_settings LIMIT 1');
+    if (!settings.length || !settings[0].activity_alert_enabled) {
+      console.log('Activity alert email sending is disabled by admin.');
+      return { success: false, message: 'Activity alert email disabled by admin' };
+    }
     try {
       const template = emailTemplates.activityAlert(userName, activityType, activityDetails);
       

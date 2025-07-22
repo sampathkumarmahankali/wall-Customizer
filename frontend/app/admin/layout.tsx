@@ -11,7 +11,8 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  Bell
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'Content Moderation', href: '/admin/moderation', icon: Shield },
   { name: 'Payments', href: '/admin/payments', icon: CreditCard },
   { name: 'Reports', href: '/admin/reports', icon: FileText },
+  { name: 'Plan Requests', href: '/admin/plan-requests', icon: Bell },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
@@ -34,6 +36,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
+  const [pendingPlanCount, setPendingPlanCount] = useState(0);
 
   useEffect(() => {
     // Check if user is admin
@@ -74,6 +77,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     };
 
     verifyAdmin();
+
+    // Fetch pending plan change request count
+    const fetchPendingPlanCount = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch("http://localhost:4000/api/admin/plan-change-requests/count", {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setPendingPlanCount(data.count);
+        }
+      } catch {}
+    };
+    fetchPendingPlanCount();
+    const interval = setInterval(fetchPendingPlanCount, 15000); // Poll every 15s
+    return () => clearInterval(interval);
   }, [router]);
 
   const handleLogout = () => {
@@ -132,7 +153,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex h-20 items-center px-6 mb-2">
             <h1 className="text-2xl font-extrabold text-indigo-700 tracking-tight drop-shadow">Admin Panel</h1>
           </div>
-          <nav className="flex-1 space-y-2 px-4 py-4">
+          <nav className="flex-1 space-y-2 px-4 py-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -147,6 +168,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 >
                   <item.icon className={`h-7 w-7 ${isActive ? 'text-indigo-600' : 'text-[#C71585]'}`} />
                   {item.name}
+                  {item.name === 'Plan Requests' && pendingPlanCount > 0 && (
+                    <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                      {pendingPlanCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}

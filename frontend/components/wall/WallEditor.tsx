@@ -66,6 +66,13 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [plan, setPlan] = useState<string>('basic');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  // Add state for plan features
+  const [planFeatures, setPlanFeatures] = useState({
+    edit_image_enabled: true,
+    tools_enabled: true,
+    export_enabled: true,
+    max_decors: 10,
+  });
 
   // Remove static sampleImages
   const [decorCategories, setDecorCategories] = useState<any[]>([]);
@@ -173,6 +180,12 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
       const plansData = await plansRes.json();
       const planObj = Array.isArray(plansData.plans) ? plansData.plans.find((p: any) => p.name.toLowerCase() === userPlan) : null;
       setPlanLimit(planObj?.session_limit ?? 3);
+      setPlanFeatures({
+        edit_image_enabled: planObj?.edit_image_enabled ?? true,
+        tools_enabled: planObj?.tools_enabled ?? true,
+        export_enabled: planObj?.export_enabled ?? true,
+        max_decors: planObj?.max_decors ?? 10,
+      });
     };
     fetchPlanAndSessions();
   }, []);
@@ -536,14 +549,22 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
                 <ImageIcon className="h-5 w-5" /> Decors
               </Button>
               <Button
-                onClick={() => setShowImageEditor(!showImageEditor)}
+                onClick={() => {
+                  if (!planFeatures.edit_image_enabled) {
+                    setShowUpgradeModal(true);
+                  } else {
+                    setShowImageEditor(!showImageEditor);
+                  }
+                }}
                 className="rounded-full px-5 py-2 font-semibold bg-white/70 text-gray-700 border border-gray-300/50 shadow-sm hover:bg-white/90 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2"
               >
                 <Edit className="h-5 w-5" /> {showImageEditor ? "Hide" : "Edit"} Images
               </Button>
               <Button
                 onClick={() => {
-                  if (plan === 'basic') {
+                  if (!planFeatures.tools_enabled) {
+                    setShowUpgradeModal(true);
+                  } else if (plan === 'basic') {
                     setShowUpgradeModal(true);
                   } else {
                     setShowTools(!showTools);
@@ -555,7 +576,9 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
               </Button>
               <Button
                 onClick={() => {
-                  if (plan === 'basic') {
+                  if (!planFeatures.export_enabled) {
+                    setShowUpgradeModal(true);
+                  } else if (plan === 'basic') {
                     setShowUpgradeModal(true);
                   } else {
                     setShowExportDialog(true);
@@ -787,10 +810,9 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
                     </div>
                     {/* Show only selected category's decors */}
                     {decorsByCategory.filter(cat => cat.id === selectedDecorCategory).map(cat => {
-                      // Restrict images by plan
                       let decorsToShow = cat.decors;
-                      if (plan === 'basic') {
-                        decorsToShow = cat.decors.slice(0, 1);
+                      if (planFeatures.max_decors && decorsToShow.length > planFeatures.max_decors) {
+                        decorsToShow = decorsToShow.slice(0, planFeatures.max_decors);
                       }
                       return (
                         <div key={cat.id}>

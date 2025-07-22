@@ -32,6 +32,10 @@ interface Plan {
   price: number;
   features: string[];
   session_limit: number;
+  edit_image_enabled?: boolean;
+  tools_enabled?: boolean;
+  export_enabled?: boolean;
+  max_decors?: number;
 }
 
 export default function PaymentsPage() {
@@ -63,6 +67,10 @@ export default function PaymentsPage() {
             ? p.features
             : (typeof p.features === 'string' ? JSON.parse(p.features) : []),
           session_limit: typeof p.session_limit === 'number' ? p.session_limit : Number(p.session_limit) || 0,
+          edit_image_enabled: p.edit_image_enabled === undefined ? true : Boolean(p.edit_image_enabled),
+          tools_enabled: p.tools_enabled === undefined ? true : Boolean(p.tools_enabled),
+          export_enabled: p.export_enabled === undefined ? true : Boolean(p.export_enabled),
+          max_decors: typeof p.max_decors === 'number' ? p.max_decors : Number(p.max_decors) || 10,
         }));
         setPlans(normalized);
       })
@@ -158,6 +166,10 @@ export default function PaymentsPage() {
       price: plan.price ?? 0,
       features: Array.isArray(plan.features) ? plan.features : [],
       session_limit: plan.session_limit ?? 0,
+      edit_image_enabled: plan.edit_image_enabled ?? true,
+      tools_enabled: plan.tools_enabled ?? true,
+      export_enabled: plan.export_enabled ?? true,
+      max_decors: plan.max_decors ?? 10,
     });
     setShowPlanModal(true);
     setNewFeature("");
@@ -166,7 +178,7 @@ export default function PaymentsPage() {
   };
 
   const handleAddPlan = () => {
-    setEditingPlan({ id: '', name: '', price: 0, features: [], session_limit: 0 });
+    setEditingPlan({ id: '', name: '', price: 0, features: [], session_limit: 0, edit_image_enabled: true, tools_enabled: true, export_enabled: true, max_decors: 10 });
     setShowPlanModal(true);
     setNewFeature("");
     setFeatureEditIdx(null);
@@ -203,6 +215,10 @@ export default function PaymentsPage() {
             price: editingPlan.price,
             features: editingPlan.features,
             session_limit: editingPlan.session_limit,
+            edit_image_enabled: editingPlan.edit_image_enabled,
+            tools_enabled: editingPlan.tools_enabled,
+            export_enabled: editingPlan.export_enabled,
+            max_decors: editingPlan.max_decors,
           }),
         });
         const text = await res.text();
@@ -225,6 +241,10 @@ export default function PaymentsPage() {
             price: editingPlan.price,
             features: editingPlan.features,
             session_limit: editingPlan.session_limit,
+            edit_image_enabled: editingPlan.edit_image_enabled,
+            tools_enabled: editingPlan.tools_enabled,
+            export_enabled: editingPlan.export_enabled,
+            max_decors: editingPlan.max_decors,
           }),
         });
         const text = await res.text();
@@ -282,6 +302,10 @@ export default function PaymentsPage() {
         price: typeof p.price === 'number' ? p.price : 0,
         features: Array.isArray(p.features) ? p.features : [],
         session_limit: typeof p.session_limit === 'number' ? p.session_limit : 0,
+        edit_image_enabled: p.edit_image_enabled ?? true,
+        tools_enabled: p.tools_enabled ?? true,
+        export_enabled: p.export_enabled ?? true,
+        max_decors: p.max_decors ?? 10,
       }))
     : Object.entries(plans).map(([key, value]) => {
         const v = value as any;
@@ -291,6 +315,10 @@ export default function PaymentsPage() {
           price: typeof v.price === 'number' ? v.price : 0,
           features: Array.isArray(v.features) ? v.features : [],
           session_limit: typeof v.session_limit === 'number' ? v.session_limit : 0,
+          edit_image_enabled: v.edit_image_enabled ?? true,
+          tools_enabled: v.tools_enabled ?? true,
+          export_enabled: v.export_enabled ?? true,
+          max_decors: v.max_decors ?? 10,
         };
       });
 
@@ -475,7 +503,7 @@ export default function PaymentsPage() {
             ) : plans.length === 0 ? (
               <div>No plans found.</div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[500px] overflow-y-auto pr-2">
                 {plans.map((plan) => (
                   <div key={plan.id} className="border rounded-lg p-6 text-center relative group bg-white">
                     <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -498,7 +526,7 @@ export default function PaymentsPage() {
         </Card>
         {/* Plan Modal */}
         <Dialog open={showPlanModal} onOpenChange={setShowPlanModal}>
-          <DialogContent className="max-w-lg mx-auto">
+          <DialogContent className="max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingPlan?.id ? "Edit Plan" : "Add Plan"}</DialogTitle>
             </DialogHeader>
@@ -520,6 +548,46 @@ export default function PaymentsPage() {
                 value={editingPlan?.session_limit || 0}
                 onChange={e => setEditingPlan({ ...editingPlan!, session_limit: Number(e.target.value) })}
               />
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="editImageToggle">Edit Image</label>
+                  <input
+                    id="editImageToggle"
+                    type="checkbox"
+                    checked={!!editingPlan?.edit_image_enabled}
+                    onChange={e => setEditingPlan({ ...editingPlan!, edit_image_enabled: e.target.checked })}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="toolsToggle">Tools</label>
+                  <input
+                    id="toolsToggle"
+                    type="checkbox"
+                    checked={!!editingPlan?.tools_enabled}
+                    onChange={e => setEditingPlan({ ...editingPlan!, tools_enabled: e.target.checked })}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="exportToggle">Export</label>
+                  <input
+                    id="exportToggle"
+                    type="checkbox"
+                    checked={!!editingPlan?.export_enabled}
+                    onChange={e => setEditingPlan({ ...editingPlan!, export_enabled: e.target.checked })}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <label htmlFor="maxDecors">Number of Decors</label>
+                <Input
+                  id="maxDecors"
+                  type="number"
+                  min={1}
+                  value={editingPlan?.max_decors || 10}
+                  onChange={e => setEditingPlan({ ...editingPlan!, max_decors: Number(e.target.value) })}
+                  className="w-32"
+                />
+              </div>
               <div>
                 <div className="font-semibold mb-2">Features</div>
                 <div className="flex gap-2 mb-2">
