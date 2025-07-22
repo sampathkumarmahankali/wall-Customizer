@@ -315,7 +315,7 @@ router.get('/users', authenticateToken, async (req, res) => {
   }
 });
 
-// Update user plan endpoint
+// Update user plan endpoint (now ensures only one request per user)
 router.post('/update-plan', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -323,11 +323,19 @@ router.post('/update-plan', authenticateToken, async (req, res) => {
     if (!plan || !['premium', 'ultra'].includes(plan)) {
       return res.status(400).json({ message: 'Invalid plan' });
     }
-    await pool.execute('UPDATE users SET plan = ? WHERE id = ?', [plan, userId]);
-    res.json({ message: 'Plan updated successfully', plan });
+    // Check for any existing request for this user
+    const [existing] = await pool.execute('SELECT id FROM plan_change_requests WHERE user_id = ?', [userId]);
+    if (existing.length > 0) {
+      // Update the existing request to pending and set the new plan
+      await pool.execute('UPDATE plan_change_requests SET requested_plan = ?, status = "pending", updated_at = CURRENT_TIMESTAMP WHERE user_id = ?', [plan, userId]);
+      return res.json({ message: 'Plan change request updated. Waiting for admin approval.' });
+    }
+    // Create plan change request
+    await pool.execute('INSERT INTO plan_change_requests (user_id, requested_plan, status) VALUES (?, ?, "pending")', [userId, plan]);
+    res.json({ message: 'Plan change request submitted. Waiting for admin approval.' });
   } catch (error) {
     console.error('Update plan error:', error);
-    res.status(500).json({ message: 'Failed to update plan' });
+    res.status(500).json({ message: 'Failed to request plan change' });
   }
 });
 
@@ -412,6 +420,21 @@ router.post('/resend-code', async (req, res) => {
   } catch (error) {
     console.error('Resend code error:', error);
     res.status(500).json({ message: 'Failed to resend verification code' });
+  }
+});
+
+// Get current user's pending plan change request
+router.get('/user/plan-change-request', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const [rows] = await pool.execute('SELECT requested_plan, status FROM plan_change_requests WHERE user_id = ? AND status = "pending" LIMIT 1', [userId]);
+    if (rows.length > 0) {
+      res.json({ request: rows[0] });
+    } else {
+      res.json({ request: null });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch plan change request' });
   }
 });
 

@@ -16,6 +16,8 @@ import Footer from "@/components/shared/Footer";
 import { authenticatedFetch } from "@/lib/auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSearchParams } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const API_URL = "http://localhost:4000/api";
 
@@ -69,6 +71,7 @@ export default function ProfilePage() {
   const [updatingPlan, setUpdatingPlan] = useState(false);
   const [planError, setPlanError] = useState("");
   const [planDetails, setPlanDetails] = useState<Plan[]>([]);
+  const [pendingPlanRequest, setPendingPlanRequest] = useState<null | { requested_plan: string, status: string }>(null);
   
   // Get user email for avatar fallback
   let email = "";
@@ -180,6 +183,28 @@ export default function ProfilePage() {
       .catch(() => setPlanDetails([]));
   }, []);
 
+  useEffect(() => {
+    // Fetch user's pending plan change request
+    const fetchPendingPlanRequest = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_URL}/auth/user/plan-change-request`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setPendingPlanRequest(data.request || null);
+        } else {
+          setPendingPlanRequest(null);
+        }
+      } catch {
+        setPendingPlanRequest(null);
+      }
+    };
+    fetchPendingPlanRequest();
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userEmail");
@@ -218,7 +243,7 @@ export default function ProfilePage() {
     setPlanSuccess("");
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${API_URL}/update-plan`, {
+      const res = await fetch(`${API_URL}/auth/update-plan`, {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -232,7 +257,8 @@ export default function ProfilePage() {
         setPlanSuccess("Plan updated successfully!");
         setShowConfirmDowngrade(false);
       } else {
-        setPlanError("Failed to update plan.");
+        const data = await res.json();
+        setPlanError(data.message || "Failed to update plan.");
       }
     } catch {
       setPlanError("Network error.");
@@ -347,7 +373,14 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#FFF9F3] text-gray-900 border border-gray-200 shadow rounded-2xl cursor-pointer" onClick={() => setShowPlanModal(true)}>
+              <Card className="bg-[#FFF9F3] text-gray-900 border border-gray-200 shadow rounded-2xl cursor-pointer" 
+  onClick={() => {
+    if (pendingPlanRequest && pendingPlanRequest.status === 'pending') {
+      toast.warning('You have a pending plan change request. Please wait for admin approval.');
+    } else {
+      setShowPlanModal(true);
+    }
+  }}>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-white/30 rounded-lg">
@@ -360,6 +393,22 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   </div>
+                  {/* Plan status and pending request */}
+                  {pendingPlanRequest && pendingPlanRequest.status === 'pending' ? (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="secondary">Request Pending</Badge>
+                      <span className="text-sm text-gray-500">Your plan change is awaiting admin approval.</span>
+                    </div>
+                  ) : (
+                    <>
+                      {pendingPlanRequest && pendingPlanRequest.status === 'pending' && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary">Waiting for admin approval</Badge>
+                          <span className="text-sm text-gray-500">Requested: {pendingPlanRequest.requested_plan}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -377,36 +426,43 @@ export default function ProfilePage() {
             <div className="mb-2 text-center text-gray-700 text-lg font-semibold">
               Select the plan that best fits your needs
             </div>
-            <div className="flex flex-col md:flex-row gap-4 justify-center items-stretch">
-              {Array.isArray(planDetails) && planDetails.length > 0 ? (
-                planDetails
-                  .sort((a, b) => a.price - b.price)
-                  .map((p) => (
-                    <div
-                      key={p.id}
-                      className={`flex-1 border-2 rounded-2xl p-4 shadow-lg transition-transform duration-200 bg-white relative group cursor-pointer ${plan === p.name.toLowerCase() ? `border-blue-500 scale-105 bg-blue-50` : 'border-gray-200 hover:scale-105 hover:shadow-2xl'}`}
-                      onClick={() => !updatingPlan && plan !== p.name.toLowerCase() && handlePlanSelect(p.name.toLowerCase())}
-                    >
-                      {plan === p.name.toLowerCase() && (
-                        <span className="absolute top-4 right-4 bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow">Current Plan</span>
-                      )}
-                      <h3 className="text-2xl font-bold mb-2 text-blue-700 flex items-center gap-2">{p.name}</h3>
-                      <div className="text-3xl font-bold mb-2">{formatINR(Number(p.price))}</div>
-                      <div className="text-gray-600 mb-2">Session Limit: {p.session_limit}</div>
-                      <ul className="text-base mb-2 list-none space-y-2">
-                        {(Array.isArray(p.features) ? p.features : []).map((b: string, i: number) => (
-                          <li key={i} className="flex items-center gap-2 text-blue-800"><CheckCircle className="h-5 w-5 text-blue-400" />{b}</li>
-                        ))}
-                      </ul>
-                      <div className="mt-auto">
-                        {plan !== p.name.toLowerCase() && <Button className="w-full" disabled={updatingPlan}>Choose {p.name}</Button>}
+            {pendingPlanRequest && pendingPlanRequest.status === 'pending' ? (
+              <div className="text-center text-orange-600 font-semibold py-8">
+                You have a pending plan change request.<br />
+                Please wait for admin approval before making another change.
+              </div>
+            ) : (
+              <div className="flex flex-col md:flex-row gap-4 justify-center items-stretch">
+                {Array.isArray(planDetails) && planDetails.length > 0 ? (
+                  planDetails
+                    .sort((a, b) => a.price - b.price)
+                    .map((p) => (
+                      <div
+                        key={p.id}
+                        className={`flex-1 border-2 rounded-2xl p-4 shadow-lg transition-transform duration-200 bg-white relative group cursor-pointer ${plan === p.name.toLowerCase() ? `border-blue-500 scale-105 bg-blue-50` : 'border-gray-200 hover:scale-105 hover:shadow-2xl'}`}
+                        onClick={() => !updatingPlan && plan !== p.name.toLowerCase() && handlePlanSelect(p.name.toLowerCase())}
+                      >
+                        {plan === p.name.toLowerCase() && (
+                          <span className="absolute top-4 right-4 bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow">Current Plan</span>
+                        )}
+                        <h3 className="text-2xl font-bold mb-2 text-blue-700 flex items-center gap-2">{p.name}</h3>
+                        <div className="text-3xl font-bold mb-2">{formatINR(Number(p.price))}</div>
+                        <div className="text-gray-600 mb-2">Session Limit: {p.session_limit}</div>
+                        <ul className="text-base mb-2 list-none space-y-2">
+                          {(Array.isArray(p.features) ? p.features : []).map((b: string, i: number) => (
+                            <li key={i} className="flex items-center gap-2 text-blue-800"><CheckCircle className="h-5 w-5 text-blue-400" />{b}</li>
+                          ))}
+                        </ul>
+                        <div className="mt-auto">
+                          {plan !== p.name.toLowerCase() && <Button className="w-full" disabled={!!(updatingPlan || (pendingPlanRequest && pendingPlanRequest.status === 'pending'))}>Choose {p.name}</Button>}
+                        </div>
                       </div>
-                    </div>
-                  ))
-              ) : (
-                <div className="text-center w-full">No plans available.</div>
-              )}
-            </div>
+                    ))
+                ) : (
+                  <div className="text-center text-gray-500">No plans available.</div>
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,46 @@ export default function SettingsPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [hasChanges, setHasChanges] = useState(false);
 
+  const [emailSettings, setEmailSettings] = useState({
+    activity_alert_enabled: true,
+    welcome_email_enabled: true,
+    plan_update_enabled: true,
+  });
+  const [emailLoading, setEmailLoading] = useState(true);
+  const [emailSaveStatus, setEmailSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  // Custom email state
+  const [customSubject, setCustomSubject] = useState("");
+  const [customHtml, setCustomHtml] = useState("");
+  const [customSending, setCustomSending] = useState(false);
+  const [customStatus, setCustomStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [customResult, setCustomResult] = useState<string | null>(null);
+
+  const [customTo, setCustomTo] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [userResults, setUserResults] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Fetch email settings from backend
+    const fetchEmailSettings = async () => {
+      setEmailLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:4000/api/admin/email-settings", {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setEmailSettings(data);
+        }
+      } catch (e) {
+        // ignore
+      }
+      setEmailLoading(false);
+    };
+    fetchEmailSettings();
+  }, []);
+
   const handleSettingChange = (key: string, value: any) => {
     setSettings(prev => ({
       ...prev,
@@ -102,6 +142,119 @@ export default function SettingsPage() {
         setSaveStatus('idle');
       }, 3000);
     }
+  };
+
+  const handleEmailToggle = async (key: 'activity_alert_enabled' | 'welcome_email_enabled' | 'plan_update_enabled', value: boolean) => {
+    setEmailSettings(prev => ({ ...prev, [key]: value }));
+    setEmailSaveStatus('idle');
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:4000/api/admin/email-settings", {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...emailSettings,
+          [key]: value
+        })
+      });
+      if (res.ok) {
+        setEmailSaveStatus('success');
+      } else {
+        setEmailSaveStatus('error');
+      }
+    } catch (e) {
+      setEmailSaveStatus('error');
+    }
+    setTimeout(() => setEmailSaveStatus('idle'), 2000);
+  };
+
+  const handleSendCustomEmail = async () => {
+    setCustomSending(true);
+    setCustomStatus('idle');
+    setCustomResult(null);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:4000/api/admin/send-custom-email", {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subject: customSubject,
+          htmlContent: customHtml
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCustomStatus('success');
+        setCustomResult(`Sent to ${data.sent} users. Failed: ${data.failed}`);
+        setCustomSubject("");
+        setCustomHtml("");
+      } else {
+        setCustomStatus('error');
+        setCustomResult('Failed to send email');
+      }
+    } catch (e) {
+      setCustomStatus('error');
+      setCustomResult('Failed to send email');
+    }
+    setCustomSending(false);
+    setTimeout(() => setCustomStatus('idle'), 3000);
+  };
+
+  const handleSendCustomEmailToUser = async () => {
+    setCustomSending(true);
+    setCustomStatus('idle');
+    setCustomResult(null);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:4000/api/admin/send-custom-email", {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: customTo,
+          subject: customSubject,
+          htmlContent: customHtml
+        })
+      });
+      if (res.ok) {
+        setCustomStatus('success');
+        setCustomResult(`Sent to ${customTo}`);
+        setCustomTo("");
+        setCustomSubject("");
+        setCustomHtml("");
+      } else {
+        setCustomStatus('error');
+        setCustomResult('Failed to send email');
+      }
+    } catch (e) {
+      setCustomStatus('error');
+      setCustomResult('Failed to send email');
+    }
+    setCustomSending(false);
+    setTimeout(() => setCustomStatus('idle'), 3000);
+  };
+
+  const handleUserSearch = async () => {
+    setUserResults([]);
+    if (!userSearch) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:4000/api/admin/users?search=${encodeURIComponent(userSearch)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserResults(data.users.map((u: any) => u.email));
+      }
+    } catch {}
   };
 
   const getSaveButtonContent = () => {
@@ -327,45 +480,125 @@ export default function SettingsPage() {
               Email Settings
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <CardContent className="space-y-6">
+            {/* Toggles for admin control */}
+            <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="smtpHost">SMTP Host</Label>
-                <Input
-                  id="smtpHost"
-                  value={settings.smtpHost}
-                  onChange={(e) => handleSettingChange('smtpHost', e.target.value)}
-                />
+                <Label htmlFor="activityAlertToggle">Activity Alert Emails</Label>
+                <p className="text-sm text-gray-500">Send activity alert emails to users</p>
               </div>
-              <div>
-                <Label htmlFor="smtpPort">SMTP Port</Label>
-                <Input
-                  id="smtpPort"
-                  type="number"
-                  value={settings.smtpPort}
-                  onChange={(e) => handleSettingChange('smtpPort', parseInt(e.target.value))}
-                />
-              </div>
+              <Switch
+                id="activityAlertToggle"
+                checked={emailSettings.activity_alert_enabled}
+                disabled={emailLoading}
+                onCheckedChange={checked => handleEmailToggle('activity_alert_enabled', checked)}
+              />
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="smtpUser">SMTP Username</Label>
+                <Label htmlFor="welcomeEmailToggle">Welcome Emails</Label>
+                <p className="text-sm text-gray-500">Send welcome emails to new users</p>
+              </div>
+              <Switch
+                id="welcomeEmailToggle"
+                checked={emailSettings.welcome_email_enabled}
+                disabled={emailLoading}
+                onCheckedChange={checked => handleEmailToggle('welcome_email_enabled', checked)}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="planUpdateToggle">Plan Update Emails</Label>
+                <p className="text-sm text-gray-500">Send an email to users when their plan is updated by admin</p>
+              </div>
+              <Switch
+                id="planUpdateToggle"
+                checked={emailSettings.plan_update_enabled}
+                disabled={emailLoading}
+                onCheckedChange={checked => handleEmailToggle('plan_update_enabled', checked)}
+              />
+            </div>
+            {emailSaveStatus === 'success' && <div className="text-green-600 text-sm">Settings updated!</div>}
+            {emailSaveStatus === 'error' && <div className="text-red-600 text-sm">Failed to update settings.</div>}
+            <hr className="my-4" />
+            {/* Custom email form */}
+            <div>
+              <h3 className="text-lg font-bold mb-2">Send Custom Email to All Users</h3>
+              <div className="mb-2">
+                <Label htmlFor="customSubject">Subject</Label>
                 <Input
-                  id="smtpUser"
-                  value={settings.smtpUser}
-                  onChange={(e) => handleSettingChange('smtpUser', e.target.value)}
+                  id="customSubject"
+                  value={customSubject}
+                  onChange={e => setCustomSubject(e.target.value)}
+                  placeholder="Enter email subject"
+                  className="mb-2"
+                />
+                <Label htmlFor="customHtml">HTML Content</Label>
+                <textarea
+                  id="customHtml"
+                  value={customHtml}
+                  onChange={e => setCustomHtml(e.target.value)}
+                  placeholder="Enter HTML content for the email"
+                  className="w-full min-h-[120px] border rounded p-2"
                 />
               </div>
-              <div>
-                <Label htmlFor="smtpPassword">SMTP Password</Label>
-                <Input
-                  id="smtpPassword"
-                  type="password"
-                  value={settings.smtpPassword}
-                  onChange={(e) => handleSettingChange('smtpPassword', e.target.value)}
-                />
+              <Button onClick={handleSendCustomEmail} disabled={customSending || !customSubject || !customHtml}>
+                {customSending ? 'Sending...' : 'Send Email'}
+              </Button>
+              {customStatus === 'success' && <div className="text-green-600 text-sm mt-2">{customResult}</div>}
+              {customStatus === 'error' && <div className="text-red-600 text-sm mt-2">{customResult}</div>}
+            </div>
+            <hr className="my-4" />
+            <div>
+              <h3 className="text-lg font-bold mb-2">Send Custom Email to a Specific User</h3>
+              <div className="mb-2 flex flex-col gap-2 relative">
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <Label htmlFor="customTo">User Email</Label>
+                    <Input
+                      id="customTo"
+                      value={customTo}
+                      onChange={e => setCustomTo(e.target.value)}
+                      placeholder="Enter user email or search..."
+                      className="mb-0"
+                      onFocus={handleUserSearch}
+                      onBlur={() => setTimeout(() => setUserResults([]), 200)}
+                      onInput={e => { setUserSearch(e.currentTarget.value); setCustomTo(e.currentTarget.value); }}
+                    />
+                    {userResults.length > 0 && (
+                      <div className="bg-white border rounded shadow absolute z-10 w-72 max-h-40 overflow-y-auto mt-1">
+                        {userResults.map(email => (
+                          <div key={email} className="px-3 py-2 hover:bg-gray-100 cursor-pointer" onMouseDown={() => { setCustomTo(email); setUserResults([]); }}>{email}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <Button size="sm" className="h-10 mt-5" onClick={handleUserSearch} disabled={!userSearch}>Search Users</Button>
+                </div>
+                <div className="flex flex-col gap-2 mt-2">
+                  <Label htmlFor="customSubjectUser">Subject</Label>
+                  <Input
+                    id="customSubjectUser"
+                    value={customSubject}
+                    onChange={e => setCustomSubject(e.target.value)}
+                    placeholder="Enter email subject"
+                    className="mb-0"
+                  />
+                  <Label htmlFor="customHtmlUser">HTML Content</Label>
+                  <textarea
+                    id="customHtmlUser"
+                    value={customHtml}
+                    onChange={e => setCustomHtml(e.target.value)}
+                    placeholder="Enter HTML content for the email"
+                    className="w-full min-h-[80px] border rounded p-2"
+                  />
+                </div>
               </div>
+              <Button onClick={handleSendCustomEmailToUser} disabled={customSending || !customTo || !customSubject || !customHtml} className="mt-2">
+                {customSending ? 'Sending...' : 'Send Email'}
+              </Button>
+              {customStatus === 'success' && <div className="text-green-600 text-sm mt-2">{customResult}</div>}
+              {customStatus === 'error' && <div className="text-red-600 text-sm mt-2">{customResult}</div>}
             </div>
           </CardContent>
         </Card>

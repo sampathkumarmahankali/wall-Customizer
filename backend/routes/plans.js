@@ -23,15 +23,15 @@ router.get('/', async (req, res) => {
 // Create a new plan
 router.post('/', async (req, res) => {
   try {
-    const { name, price, features, session_limit } = req.body;
+    const { name, price, features, session_limit, edit_image_enabled, tools_enabled, export_enabled, max_decors } = req.body;
     if (!name || typeof price !== 'number' || !Array.isArray(features) || typeof session_limit !== 'number') {
       return res.status(400).json({ error: 'Invalid input' });
     }
     const [result] = await pool.query(
-      'INSERT INTO plans (name, price, features, session_limit) VALUES (?, ?, ?, ?)',
-      [name, price, JSON.stringify(features), session_limit]
+      'INSERT INTO plans (name, price, features, session_limit, edit_image_enabled, tools_enabled, export_enabled, max_decors) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, price, JSON.stringify(features), session_limit, !!edit_image_enabled, !!tools_enabled, !!export_enabled, max_decors]
     );
-    res.status(201).json({ id: result.insertId, name, price, features, session_limit });
+    res.status(201).json({ id: result.insertId, name, price, features, session_limit, edit_image_enabled, tools_enabled, export_enabled, max_decors });
   } catch (err) {
     res.status(500).json({ error: 'Failed to create plan', details: err.message });
   }
@@ -41,15 +41,15 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, features, session_limit } = req.body;
+    const { name, price, features, session_limit, edit_image_enabled, tools_enabled, export_enabled, max_decors } = req.body;
     if (!name || typeof price !== 'number' || !Array.isArray(features) || typeof session_limit !== 'number') {
       return res.status(400).json({ error: 'Invalid input' });
     }
     await pool.query(
-      'UPDATE plans SET name = ?, price = ?, features = ?, session_limit = ? WHERE id = ?',
-      [name, price, JSON.stringify(features), session_limit, id]
+      'UPDATE plans SET name = ?, price = ?, features = ?, session_limit = ?, edit_image_enabled = ?, tools_enabled = ?, export_enabled = ?, max_decors = ? WHERE id = ?',
+      [name, price, JSON.stringify(features), session_limit, !!edit_image_enabled, !!tools_enabled, !!export_enabled, max_decors, id]
     );
-    res.json({ id, name, price, features, session_limit });
+    res.json({ id, name, price, features, session_limit, edit_image_enabled, tools_enabled, export_enabled, max_decors });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update plan', details: err.message });
   }

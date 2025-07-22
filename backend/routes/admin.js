@@ -1,11 +1,60 @@
 const express = require('express');
 const pool = require('../db');
 const { authenticateAdmin } = require('../middleware/admin');
+const emailService = require('../services/email-service');
 
 const router = express.Router();
 
 // Apply admin middleware to all routes
 router.use(authenticateAdmin);
+
+// Middleware to check admin
+async function requireAdmin(req, res, next) {
+  const userId = req.user.id;
+  const [users] = await pool.execute('SELECT role FROM users WHERE id = ?', [userId]);
+  if (!users.length || users[0].role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+  next();
+}
+
+// Get email settings
+router.get('/email-settings', authenticateAdmin, async (req, res) => {
+  const [rows] = await pool.execute('SELECT activity_alert_enabled, welcome_email_enabled, plan_update_enabled FROM email_settings LIMIT 1');
+  if (!rows.length) return res.status(404).json({ message: 'Settings not found' });
+  res.json(rows[0]);
+});
+
+// Update email settings
+router.post('/email-settings', authenticateAdmin, async (req, res) => {
+  const { activity_alert_enabled, welcome_email_enabled, plan_update_enabled } = req.body;
+  await pool.execute(
+    'UPDATE email_settings SET activity_alert_enabled = ?, welcome_email_enabled = ?, plan_update_enabled = ? WHERE id = 1',
+    [!!activity_alert_enabled, !!welcome_email_enabled, !!plan_update_enabled]
+  );
+  res.json({ message: 'Settings updated' });
+});
+
+// Send custom email to all users
+router.post('/send-custom-email', authenticateAdmin, async (req, res) => {
+  const { subject, htmlContent } = req.body;
+  if (!subject || !htmlContent) {
+    return res.status(400).json({ message: 'Subject and HTML content are required' });
+  }
+  // Get all active users
+  const [users] = await pool.execute('SELECT email, name FROM users WHERE is_active = 1 AND email IS NOT NULL');
+  if (!users.length) return res.status(404).json({ message: 'No users found' });
+  let sent = 0, failed = 0;
+  for (const user of users) {
+    try {
+      await emailService.sendCustomEmail(user.email, subject, htmlContent);
+      sent++;
+    } catch (e) {
+      failed++;
+    }
+  }
+  res.json({ message: 'Custom email sent', sent, failed });
+});
 
 // Get dashboard overview statistics
 router.get('/dashboard', async (req, res) => {
@@ -374,4 +423,93 @@ router.get('/reports/session-analytics', async (req, res) => {
   }
 });
 
-module.exports = router; 
+// Get all plan change requests (admin)
+router.get('/plan-change-requests', authenticateAdmin, async (req, res) => {
+  const [rows] = await pool.execute(`
+    SELECT r.id, r.user_id, u.name, u.email, r.requested_plan, r.status, r.created_at, r.updated_at
+    FROM plan_change_requests r
+    JOIN users u ON r.user_id = u.id
+    ORDER BY r.created_at DESC
+  `);
+  res.json(rows);
+});
+
+// Get count of pending plan change requests (for notification badge)
+router.get('/plan-change-requests/count', authenticateAdmin, async (req, res) => {
+  const [rows] = await pool.execute('SELECT COUNT(*) as count FROM plan_change_requests WHERE status = "pending"');
+  res.json({ count: rows[0].count });
+});
+
+// Approve a plan change request
+router.post('/plan-change-requests/:id/approve', authenticateAdmin, async (req, res) => {
+  const { id } = req.params;
+  // Get the request
+  const [requests] = await pool.execute('SELECT * FROM plan_change_requests WHERE id = ?', [id]);
+  if (!requests.length) return res.status(404).json({ message: 'Request not found' });
+  const request = requests[0];
+  if (request.status !== 'pending') return res.status(400).json({ message: 'Request already processed' });
+  // Update user plan
+  await pool.execute('UPDATE users SET plan = ? WHERE id = ?', [request.requested_plan, request.user_id]);
+  // Mark request as approved
+  await pool.execute('UPDATE plan_change_requests SET status = "approved" WHERE id = ?', [id]);
+  // Send plan updated email with plan details if enabled
+  try {
+    const [settings] = await pool.execute('SELECT plan_update_enabled FROM email_settings LIMIT 1');
+    if (settings.length > 0 && settings[0].plan_update_enabled) {
+      const [users] = await pool.execute('SELECT email, name FROM users WHERE id = ?', [request.user_id]);
+      const [plans] = await pool.execute('SELECT * FROM plans WHERE LOWER(name) = LOWER(?) LIMIT 1', [request.requested_plan]);
+      if (users.length > 0 && plans.length > 0) {
+        const user = users[0];
+        const plan = plans[0];
+        let features = [];
+        try {
+          features = Array.isArray(plan.features) ? plan.features : JSON.parse(plan.features);
+        } catch { features = []; }
+        const featuresHtml = features.length > 0
+          ? `<ul style='margin:10px 0 20px 0;padding-left:20px;'>${features.map(f => `<li>${f}</li>`).join('')}</ul>`
+          : '';
+        await emailService.sendCustomEmail(
+          user.email,
+          'Your Plan Has Been Updated',
+          `<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+            <div style='background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:24px 0;text-align:center;color:white;'>
+              <h2 style='margin:0;font-size:28px;'>Plan Updated Successfully</h2>
+            </div>
+            <div style='padding:32px 24px;background:#f8f9fa;'>
+              <h3 style='color:#333;margin-bottom:10px;'>Hi ${user.name || user.email},</h3>
+              <p style='color:#666;line-height:1.6;margin-bottom:20px;'>Your subscription plan has been updated to <b>${plan.name}</b> by the admin. Here are your new plan details:</p>
+              <div style='background:white;padding:20px;border-radius:8px;margin:20px 0;'>
+                <h4 style='color:#333;margin-bottom:8px;'>Plan: ${plan.name}</h4>
+                <p style='margin:0 0 8px 0;'><b>Price:</b> ${plan.price}</p>
+                <p style='margin:0 0 8px 0;'><b>Session Limit:</b> ${plan.session_limit}</p>
+                <div><b>Advantages:</b>${featuresHtml}</div>
+              </div>
+              <p style='color:#666;font-size:14px;margin-top:30px;'>If you have any questions, feel free to reach out to our support team.</p>
+            </div>
+            <div style='background:#333;color:white;padding:16px;text-align:center;font-size:12px;'>
+              <p>© 2024 MIALTER. All rights reserved.</p>
+            </div>
+          </div>`
+        );
+      }
+    }
+  } catch (e) {
+    console.error('Error sending plan updated email:', e);
+  }
+  res.json({ message: 'Plan change approved' });
+});
+
+// Reject a plan change request
+router.post('/plan-change-requests/:id/reject', authenticateAdmin, async (req, res) => {
+  const { id } = req.params;
+  // Get the request
+  const [requests] = await pool.execute('SELECT * FROM plan_change_requests WHERE id = ?', [id]);
+  if (!requests.length) return res.status(404).json({ message: 'Request not found' });
+  const request = requests[0];
+  if (request.status !== 'pending') return res.status(400).json({ message: 'Request already processed' });
+  // Mark request as rejected
+  await pool.execute('UPDATE plan_change_requests SET status = "rejected" WHERE id = ?', [id]);
+  res.json({ message: 'Plan change rejected' });
+});
+
+module.exports = router;

@@ -75,6 +75,8 @@ export default function Header({ showLogout = true, showProfile = true, classNam
     { name: "Home", href: "/", icon: Home },
     { name: "Create", href: "/create", icon: PlusCircle },
     { name: "Editor", href: "/editor", icon: Edit },
+    { name: "Profile", href: "/profile", icon: User },
+    { name: "Settings", href: "/settings/shared", icon: Settings },
   ];
 
   return (
@@ -117,66 +119,7 @@ export default function Header({ showLogout = true, showProfile = true, classNam
         </nav>
         {/* CTA & User Menu */}
         <div className="flex items-center gap-2">
-          {/* Settings Button with Dropdown */}
-          <div className="relative" ref={settingsRef}>
-            <Button
-              className="flex items-center gap-1 rounded-full px-4 py-2 font-semibold bg-[#FFD700] text-[#8e44ad] hover:bg-[#FF9800] hover:text-white transition-all border-none"
-              onClick={() => setMenuOpen(menuOpen === 'settings' ? false : 'settings')}
-              aria-label="Settings"
-            >
-              <Settings className="h-5 w-5" />
-              Settings
-            </Button>
-            {menuOpen === 'settings' && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50 flex flex-col py-2 animate-fade-in">
-                <button
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-gray-800 text-left"
-                  onClick={() => { setMenuOpen(false); router.push('/settings/shared'); }}
-                >
-                  <Share2 className="h-4 w-4 text-[#FF9800]" />
-                  Edit Shared Options
-                </button>
-                <button
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-gray-800 text-left"
-                  onClick={() => { setMenuOpen(false); router.push('/profile'); }}
-                >
-                  <UserCog className="h-4 w-4 text-[#8e44ad]" />
-                  Change Profile
-                </button>
-                <button
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-gray-800 text-left"
-                  onClick={() => { setMenuOpen(false); router.push('/'); }}
-                >
-                  <Info className="h-4 w-4 text-[#FFD700]" />
-                  About
-                </button>
-                <button
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-gray-800 text-left"
-                  onClick={() => { setMenuOpen(false); router.push('/contact'); }}
-                >
-                  <Mail className="h-4 w-4 text-[#C71585]" />
-                  Contact
-                </button>
-                <button
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-gray-800 text-left"
-                  onClick={() => { setMenuOpen(false); router.push('/'); }}
-                >
-                  <HelpCircle className="h-4 w-4 text-[#FF9800]" />
-                  Help
-                </button>
-              </div>
-            )}
-          </div>
           {/* Show Profile button only on desktop */}
-          {isLoggedIn && showProfile && (
-            <Button
-              onClick={() => router.push("/profile")}
-              className="hidden md:flex items-center gap-1 rounded-full px-5 py-2 font-semibold bg-[#FF9800] text-white hover:bg-[#fb8c00] transition-all border-none"
-            >
-              <User className="h-5 w-5" />
-              Profile
-            </Button>
-          )}
           {isLoggedIn && showLogout && (
             <Button
               onClick={handleLogout}
