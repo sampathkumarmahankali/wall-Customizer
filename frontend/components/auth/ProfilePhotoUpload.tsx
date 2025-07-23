@@ -13,7 +13,7 @@ interface ProfilePhotoUploadProps {
   onPhotoSelect?: (file: File) => void;
 }
 
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Helper function to construct photo URL
 const getPhotoUrl = (photoPath: string | undefined) => {
@@ -31,49 +31,27 @@ const getPhotoUrl = (photoPath: string | undefined) => {
   
   // If it's a relative path, prefix with backend server URL
   if (photoPath.startsWith('/uploads/')) {
-    return `http://localhost:4000${photoPath}`;
+    return `${API_URL}${photoPath}`;
   }
   
   return photoPath;
 };
 
-// Helper function to convert file to base64
-const convertFileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
-      const base64 = result.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = error => reject(error);
-  });
-};
-
-// Helper function to upload profile photo
-const uploadProfilePhoto = async (base64Data: string, fileName: string, fileType: string) => {
+// Helper function to upload profile photo using FormData
+const uploadProfilePhoto = async (file: File) => {
   try {
     const headers = getAuthHeadersForFormData();
-    const response = await fetch('http://localhost:4000/api/auth/upload-profile-photo', {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await fetch(`${API_URL}/auth/upload-profile-photo`, {
       method: 'POST',
-      headers: {
-        ...headers,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        imageData: base64Data,
-        fileName: fileName,
-        fileType: fileType
-      }),
+      headers,
+      body: formData,
     });
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to upload photo');
     }
-
     const data = await response.json();
     return data;
   } catch (error) {
@@ -99,41 +77,26 @@ export default function ProfilePhotoUpload({
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       setError('Please select a valid image file (JPEG, PNG, or GIF)');
       return;
     }
-
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
       setError('File size must be less than 5MB');
       return;
     }
-
-    // Clear previous errors
     setError("");
-
-    // Create preview URL
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
     setSelectedFile(file);
-
-    // Convert file to base64
     try {
-      const base64 = await convertFileToBase64(file);
-      
-      // Send to backend
-      const response = await uploadProfilePhoto(base64, file.name, file.type);
-      
-      // Update the profile photo in the UI
-      if (response.profilePhoto && onPhotoUpdate) {
-        onPhotoUpdate(response.profilePhoto);
+      const response = await uploadProfilePhoto(file);
+      if (response.profilePhotoUrl && onPhotoUpdate) {
+        onPhotoUpdate(response.profilePhotoUrl);
       }
-      
-      // Call parent callback if provided
       if (onPhotoSelect) {
         onPhotoSelect(file);
       }
@@ -155,7 +118,7 @@ export default function ProfilePhotoUpload({
       // If there's a current photo, remove it from backend
       if (currentPhoto) {
         const headers = getAuthHeadersForFormData();
-        const response = await fetch('http://localhost:4000/api/auth/remove-profile-photo', {
+        const response = await fetch(`${API_URL}/auth/remove-profile-photo`, {
           method: 'DELETE',
           headers: {
             ...headers,
@@ -183,8 +146,7 @@ export default function ProfilePhotoUpload({
       return <AvatarImage src={previewUrl} alt="Profile preview" className="object-cover" />;
     }
     if (currentPhoto) {
-      const photoUrl = getPhotoUrl(currentPhoto);
-      return <AvatarImage src={photoUrl} alt="Profile photo" className="object-cover" />;
+      return <AvatarImage src={currentPhoto} alt="Profile photo" className="object-cover" />;
     }
     return null;
   };

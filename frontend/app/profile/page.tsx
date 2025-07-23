@@ -19,7 +19,8 @@ import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-const API_URL = "http://localhost:4000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+console.log('DEBUG: NEXT_PUBLIC_API_URL =', API_URL);
 
 // Session data type
 interface Session {
@@ -106,8 +107,9 @@ export default function ProfilePage() {
 
           if (profileResponse.ok) {
             const profileData = await profileResponse.json();
-            if (profileData.user && profileData.user.profile_photo) {
-              setProfilePhoto(profileData.user.profile_photo);
+            // Use profilePhotoUrl (S3) if available, else fallback to profile_photo
+            if (profileData.user && (profileData.user.profilePhotoUrl || profileData.user.profile_photo)) {
+              setProfilePhoto(profileData.user.profilePhotoUrl || profileData.user.profile_photo);
             }
             if (profileData.user && profileData.user.role === "admin") {
               setIsAdmin(true);
@@ -167,7 +169,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // Fetch plan details from backend
-    fetch('http://localhost:4000/api/plans')
+    fetch(`${API_URL}/plans`)
       .then(res => res.json())
       .then(data => {
         const plans = Array.isArray(data.plans) ? data.plans : [];

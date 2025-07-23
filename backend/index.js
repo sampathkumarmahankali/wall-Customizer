@@ -11,6 +11,7 @@ const sharedRoutes = require('./routes/shared');
 const plansRoutes = require('./routes/plans');
 const decorsRoutes = require('./routes/decors');
 const usersRoutes = require('./routes/users');
+const imageRoutes = require('./routes/image');
 const pool = require('./db');
 
 const app = express();
@@ -38,6 +39,8 @@ app.use('/api/plans', plansRoutes);
 app.use('/api', decorsRoutes);
 // Users routes
 app.use('/api/users', usersRoutes);
+// Image routes
+app.use('/api/images', imageRoutes);
 
 // Scheduled cleanup: delete unverified users whose code has expired
 setInterval(async () => {

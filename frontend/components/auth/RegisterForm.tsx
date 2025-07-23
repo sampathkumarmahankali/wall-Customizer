@@ -28,6 +28,7 @@ export default function RegisterForm({ onSuccess, redirect }: RegisterFormProps)
   const [resendStatus, setResendStatus] = useState<string>("");
   const [resendLoading, setResendLoading] = useState(false);
   const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +42,7 @@ export default function RegisterForm({ onSuccess, redirect }: RegisterFormProps)
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/auth/register", {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,12 +55,12 @@ export default function RegisterForm({ onSuccess, redirect }: RegisterFormProps)
       if (response.ok) {
         // Check if user is verified
         try {
-          const checkRes = await fetch(`http://localhost:4000/api/auth/check-verified?email=${encodeURIComponent(email)}`);
+          const checkRes = await fetch(`${API_URL}/auth/check-verified?email=${encodeURIComponent(email)}`);
           const checkData = await checkRes.json();
           if (checkRes.ok && checkData.is_verified) {
             // User is already verified (should not happen for new users)
             // Log in and redirect
-            const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+            const loginRes = await fetch(`${API_URL}/auth/login`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ email, password }),
@@ -99,7 +100,7 @@ export default function RegisterForm({ onSuccess, redirect }: RegisterFormProps)
     setVerifLoading(true);
     setVerifError("");
     try {
-      const response = await fetch("http://localhost:4000/api/auth/verify-email", {
+      const response = await fetch(`${API_URL}/auth/verify-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code: verificationCode }),
@@ -107,7 +108,7 @@ export default function RegisterForm({ onSuccess, redirect }: RegisterFormProps)
       const data = await response.json();
       if (response.ok) {
         // Now log the user in automatically
-        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+        const loginRes = await fetch(`${API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
@@ -140,7 +141,7 @@ export default function RegisterForm({ onSuccess, redirect }: RegisterFormProps)
     setResendStatus("");
     setResendLoading(true);
     try {
-      const response = await fetch("http://localhost:4000/api/auth/resend-code", {
+      const response = await fetch(`${API_URL}/auth/resend-code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

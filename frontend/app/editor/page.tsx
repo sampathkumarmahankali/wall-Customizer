@@ -13,6 +13,7 @@ export default function EditorPage() {
   const [shareType, setShareType] = useState<string | null>(null);
   const [editors, setEditors] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     // Check if user is logged in
@@ -26,7 +27,7 @@ export default function EditorPage() {
   useEffect(() => {
     if (sessionId) {
       setLoading(true);
-      fetch(`http://localhost:4000/api/session/${sessionId}`)
+      fetch(`${API_URL}/session/${sessionId}`)
         .then(res => res.json())
         .then(data => {
           setInitialSettings(data.data); // .data because backend returns { data: ... }
@@ -34,7 +35,7 @@ export default function EditorPage() {
           setLoading(false);
         });
       // Fetch share info
-      fetch(`http://localhost:4000/api/shared/session/${sessionId}`, {
+      fetch(`${API_URL}/shared/session/${sessionId}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       })
         .then(res => {

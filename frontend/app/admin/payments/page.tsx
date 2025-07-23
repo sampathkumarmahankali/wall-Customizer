@@ -52,10 +52,12 @@ export default function PaymentsPage() {
   const [featureEditIdx, setFeatureEditIdx] = useState<number | null>(null);
   const [featureEditValue, setFeatureEditValue] = useState("");
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   // Fetch plans from backend (must be at top level)
   useEffect(() => {
     setLoadingPlans(true);
-    fetch("http://localhost:4000/api/plans")
+    fetch(`${API_URL}/plans`)
       .then(res => res.json())
       .then(data => {
         const rawPlans = Array.isArray(data.plans) ? data.plans : [];
@@ -82,7 +84,7 @@ export default function PaymentsPage() {
     const fetchPaymentData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch('http://localhost:4000/api/admin/payments?period=30', {
+        const response = await fetch(`${API_URL}/admin/payments?period=30`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -188,7 +190,7 @@ export default function PaymentsPage() {
   // Delete plan
   const handleDeletePlan = async (planId: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/plans/${planId}`, { method: 'DELETE' });
+      const res = await fetch(`${API_URL}/plans/${planId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete plan');
       setPlans(plans.filter(p => p.id !== planId));
       toast.success("Plan deleted");
@@ -207,7 +209,7 @@ export default function PaymentsPage() {
     try {
       if (editingPlan.id && editingPlan.id !== '') {
         // Update existing plan
-        const res = await fetch(`http://localhost:4000/api/plans/${editingPlan.id}`, {
+        const res = await fetch(`${API_URL}/plans/${editingPlan.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -233,7 +235,7 @@ export default function PaymentsPage() {
         toast.success("Plan updated");
       } else {
         // Add new plan
-        const res = await fetch('http://localhost:4000/api/plans', {
+        const res = await fetch(`${API_URL}/plans`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

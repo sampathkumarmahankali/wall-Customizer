@@ -22,12 +22,14 @@ export default function PlanRequestsPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [error, setError] = useState("");
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const fetchRequests = async () => {
     setLoading(true);
     setError("");
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:4000/api/admin/plan-change-requests", {
+      const res = await fetch(`${API_URL}/admin/plan-change-requests`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -51,7 +53,7 @@ export default function PlanRequestsPage() {
     setError("");
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:4000/api/admin/plan-change-requests/${id}/${action}`, {
+      const res = await fetch(`${API_URL}/admin/plan-change-requests/${id}/${action}`, {
         method: "POST",
         headers: { 'Authorization': `Bearer ${token}` }
       });

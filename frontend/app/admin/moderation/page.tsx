@@ -83,13 +83,15 @@ export default function ModerationPage() {
   const [editingDecor, setEditingDecor] = useState<any | null>(null);
   const [newCategory, setNewCategory] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [decorImage, setDecorImage] = useState<string>("");
+  const [decorImage, setDecorImage] = useState<File | null>(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const fetchFlaggedContent = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch('http://localhost:4000/api/admin/flagged-content', {
+        const response = await fetch(`${API_URL}/admin/flagged-content`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -112,10 +114,10 @@ export default function ModerationPage() {
 
   // Fetch categories and decors
   useEffect(() => {
-    fetch("http://localhost:4000/api/decor-categories")
+    fetch(`${API_URL}/decor-categories`)
       .then(res => res.json())
       .then(data => setCategories(data.categories || []));
-    fetch("http://localhost:4000/api/decors")
+    fetch(`${API_URL}/decors`)
       .then(res => res.json())
       .then(data => setDecors(data.decors || []))
       .finally(() => setLoadingDecors(false));
@@ -207,7 +209,7 @@ export default function ModerationPage() {
   // Add category
   const handleAddCategory = async () => {
     if (!newCategory.trim()) return;
-    const res = await fetch("http://localhost:4000/api/decor-categories", {
+    const res = await fetch(`${API_URL}/decor-categories`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: newCategory.trim() })
@@ -222,56 +224,43 @@ export default function ModerationPage() {
   // Add/edit decor
   const handleSaveDecor = async () => {
     if (!editingDecor?.name || !editingDecor?.category_id || !decorImage) return;
-    const payload = {
-      name: editingDecor.name,
-      category_id: editingDecor.category_id,
-      image_base64: decorImage,
-      is_active: editingDecor.is_active !== false,
-    };
+    const formData = new FormData();
+    formData.append('name', editingDecor.name);
+    formData.append('category_id', editingDecor.category_id);
+    formData.append('is_active', editingDecor.is_active !== false ? '1' : '0');
+    formData.append('image', decorImage);
+    let res;
     if (editingDecor.id) {
-      // Edit
-      const res = await fetch(`http://localhost:4000/api/decors/${editingDecor.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+      res = await fetch(`${API_URL}/decors/${editingDecor.id}`, {
+        method: 'PUT',
+        body: formData
       });
-      if (res.ok) {
-        const updated = await res.json();
-        setDecors(decors.map(d => d.id === editingDecor.id ? updated : d));
-        setShowDecorModal(false);
-        setEditingDecor(null);
-        setDecorImage("");
-      }
     } else {
-      // Add
-      const res = await fetch("http://localhost:4000/api/decors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+      res = await fetch(`${API_URL}/decors`, {
+        method: 'POST',
+        body: formData
       });
-      if (res.ok) {
-        const created = await res.json();
-        setDecors([...decors, created]);
-        setShowDecorModal(false);
-        setEditingDecor(null);
-        setDecorImage("");
-      }
+    }
+    if (res.ok) {
+      const updated = await res.json();
+      setDecors(editingDecor.id ? decors.map(d => d.id === editingDecor.id ? updated : d) : [...decors, updated]);
+      setShowDecorModal(false);
+      setEditingDecor(null);
+      setDecorImage(null);
     }
   };
 
   // Delete decor
   const handleDeleteDecor = async (id: number) => {
-    const res = await fetch(`http://localhost:4000/api/decors/${id}`, { method: "DELETE" });
+    const res = await fetch(`${API_URL}/decors/${id}`, { method: "DELETE" });
     if (res.ok) setDecors(decors.filter(d => d.id !== id));
   };
 
-  // Handle image upload (convert to base64)
+  // Handle image upload (file input)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setDecorImage(reader.result as string);
-    reader.readAsDataURL(file);
+    setDecorImage(file);
   };
 
   // Group decors by category
@@ -473,10 +462,10 @@ export default function ModerationPage() {
                     <React.Fragment key={cat.id}>
                       {cat.decors.map((decor: any) => (
                         <div key={decor.id} className="border rounded-lg p-3 flex flex-col items-center bg-white hover:bg-blue-50 transition cursor-pointer">
-                          <img src={decor.image_base64} alt={decor.name} className="w-16 h-16 object-contain mb-2 rounded" />
+                          <img src={decor.imageUrl || decor.image_base64} alt={decor.name} className="w-16 h-16 object-contain mb-2 rounded" />
                           <div className="font-semibold mb-1 text-center">{decor.name}</div>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => { setEditingDecor(decor); setDecorImage(decor.image_base64); setShowDecorModal(true); }}>Edit</Button>
+                            <Button size="sm" variant="outline" onClick={() => { setEditingDecor(decor); setDecorImage(null); setShowDecorModal(true); }}>Edit</Button>
                             <Button size="sm" variant="destructive" onClick={() => handleDeleteDecor(decor.id)}>Delete</Button>
                           </div>
                         </div>
@@ -511,7 +500,10 @@ export default function ModerationPage() {
                 ))}
               </select>
               <Input type="file" accept="image/*" onChange={handleImageUpload} />
-              {decorImage && <img src={decorImage} alt="Preview" className="w-20 h-20 object-contain mx-auto" />}
+              {decorImage && <img src={URL.createObjectURL(decorImage)} alt="Preview" className="w-20 h-20 object-contain mx-auto" />}
+              {!decorImage && editingDecor?.imageUrl && (
+                <img src={editingDecor.imageUrl} alt="Preview" className="w-20 h-20 object-contain mx-auto" />
+              )}
               <div className="flex gap-2 justify-end mt-4">
                 <Button variant="outline" onClick={() => setShowDecorModal(false)}>Cancel</Button>
                 <Button onClick={handleSaveDecor}>{editingDecor?.id ? "Update" : "Add"} Decor</Button>
