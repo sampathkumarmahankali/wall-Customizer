@@ -22,8 +22,10 @@ interface Session {
   updatedAt: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 const fetchUserIdByEmail = async (email: string): Promise<string | null> => {
-  const res = await fetch(`http://localhost:4000/api/auth/userid-by-email/${encodeURIComponent(email)}`);
+  const res = await fetch(`${API_URL}/auth/userid-by-email/${encodeURIComponent(email)}`);
   if (!res.ok) return null;
   const data = await res.json();
   return data.userId;
@@ -32,7 +34,7 @@ const fetchUserIdByEmail = async (email: string): Promise<string | null> => {
 // Mock fetch function (replace with real API later)
 const fetchUserSessions = async (userId: string): Promise<Session[]> => {
   if (!userId) return [];
-  const res = await fetch(`http://localhost:4000/api/sessions/${userId}`);
+  const res = await fetch(`${API_URL}/sessions/${userId}`);
   if (!res.ok) return [];
   const data = await res.json();
   // Map backend fields to frontend Session type
@@ -46,7 +48,7 @@ const fetchUserSessions = async (userId: string): Promise<Session[]> => {
 // Delete session function
 const deleteSession = async (sessionId: string): Promise<boolean> => {
   try {
-    const res = await fetch(`http://localhost:4000/api/session/${sessionId}`, {
+    const res = await fetch(`${API_URL}/session/${sessionId}`, {
       method: 'DELETE',
     });
     return res.ok;

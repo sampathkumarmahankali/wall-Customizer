@@ -82,10 +82,10 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
 
   // Fetch decor categories and items
   useEffect(() => {
-    fetch('http://localhost:4000/api/decor-categories')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/decor-categories`)
       .then(res => res.json())
       .then(data => setDecorCategories(data.categories || []));
-    fetch('http://localhost:4000/api/decors')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/decors`)
       .then(res => res.json())
       .then(data => setDecorItems(data.decors || []))
       .finally(() => setLoadingDecors(false));
@@ -102,7 +102,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
 
   useEffect(() => {
     if (sessionId) {
-      fetch(`http://localhost:4000/api/session/${sessionId}`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/session/${sessionId}`)
         .then(res => res.json())
         .then(session => {
           if (session.data) {
@@ -161,22 +161,22 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
       const email = localStorage.getItem('userEmail');
       if (!email) return;
       // Get userId
-      const userIdRes = await fetch(`http://localhost:4000/api/auth/userid-by-email/${encodeURIComponent(email)}`);
+      const userIdRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/userid-by-email/${encodeURIComponent(email)}`);
       const userIdData = await userIdRes.json();
       const userId = userIdData.userId;
       // Get session count
-      const sessionsRes = await fetch(`http://localhost:4000/api/sessions/${userId}`);
+      const sessionsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/${userId}`);
       const sessionsData = await sessionsRes.json();
       setSessionCount(Array.isArray(sessionsData) ? sessionsData.length : 0);
       // Get plan
-      const profileRes = await fetch(`http://localhost:4000/api/auth/profile`, {
+      const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       const profileData = await profileRes.json();
       const userPlan = profileData.user?.plan || 'basic';
       setPlan(userPlan.toLowerCase());
       // Get plan details
-      const plansRes = await fetch('http://localhost:4000/api/plans');
+      const plansRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans`);
       const plansData = await plansRes.json();
       const planObj = Array.isArray(plansData.plans) ? plansData.plans.find((p: any) => p.name.toLowerCase() === userPlan) : null;
       setPlanLimit(planObj?.session_limit ?? 3);
@@ -297,11 +297,28 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
   const currentWallBackground = wallBackground.name === "Blank White Wall" ? wallColor : wallBackground.value;
 
   // Handler to add a sample image to the wall
-  const handleAddSampleImage = (src: string) => {
+  const handleAddSampleImage = async (src: string) => {
+    let base64Src = src;
+    // If src is not base64, fetch and convert to base64 using backend proxy
+    if (!src.startsWith('data:')) {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/images/proxy-image?url=${encodeURIComponent(src)}`);
+        const blob = await response.blob();
+        base64Src = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        // fallback to original src if fetch fails
+        base64Src = src;
+      }
+    }
     const newImg = {
       id: Date.now() + Math.random(),
-      src,
-      originalSrc: src,
+      src: base64Src,
+      originalSrc: base64Src,
       style: { width: 200, height: 200 },
       position: { x: 50, y: 50 },
       filters: {
@@ -371,7 +388,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
     };
     
     try {
-      const res = await fetch("http://localhost:4000/api/sessions", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -386,7 +403,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
         }
         // Trigger activity alert email
         try {
-          await authenticatedFetch("http://localhost:4000/api/email/send-activity-alert", {
+          await authenticatedFetch(`${process.env.NEXT_PUBLIC_API_URL}/email/send-activity-alert`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -421,7 +438,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
   const fetchUsers = async () => {
     try {
       const token = getToken();
-      const res = await fetch('http://localhost:4000/api/users', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const users = await res.json();
@@ -501,7 +518,7 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
     setSearching(true);
     try {
       const token = getToken();
-      const res = await fetch(`http://localhost:4000/api/users?email=${encodeURIComponent(email)}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users?email=${encodeURIComponent(email)}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const users = await res.json();
@@ -821,9 +838,9 @@ export default function WallEditor({ initialSettings, editable = true }: WallEdi
                               <div
                                 key={decor.id}
                                 className="border border-gray-200 rounded-xl p-3 flex flex-col items-center cursor-pointer hover:shadow-lg transition bg-white hover:bg-blue-50"
-                                onClick={() => handleAddSampleImage(decor.image_base64)}
+                                onClick={() => handleAddSampleImage(decor.imageUrl || '/placeholder.jpg')}
                               >
-                                <img src={decor.image_base64} alt={decor.name} className="w-20 h-20 object-contain mb-2 rounded" />
+                                <img src={decor.imageUrl || '/placeholder.jpg'} alt={decor.name} className="w-20 h-20 object-contain mb-2 rounded" />
                                 <div className="text-sm text-center font-semibold">{decor.name}</div>
                               </div>
                             ))}

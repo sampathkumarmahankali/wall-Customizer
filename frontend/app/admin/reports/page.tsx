@@ -129,6 +129,8 @@ export default function ReportsPage() {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   // Fetch real data for preview when previewReport changes
   useEffect(() => {
     if (!previewReport) return;
@@ -137,7 +139,7 @@ export default function ReportsPage() {
     const token = localStorage.getItem("token");
     if (previewReport.type === 'user-activity') {
       setReportLoading(true);
-      fetch('http://localhost:4000/api/admin/reports/user-activity', {
+      fetch(`${API_URL}/admin/reports/user-activity`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -153,7 +155,7 @@ export default function ReportsPage() {
         });
     } else if (previewReport.type === 'session-analytics') {
       setReportLoading(true);
-      fetch('http://localhost:4000/api/admin/reports/session-analytics', {
+      fetch(`${API_URL}/admin/reports/session-analytics`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -441,9 +443,9 @@ export default function ReportsPage() {
     let endpoint = "";
     let filename = "report-" + report.type + "-" + new Date().toISOString() + ".csv";
     if (report.type === 'user-activity') {
-      endpoint = 'http://localhost:4000/api/admin/reports/user-activity';
+      endpoint = `${API_URL}/admin/reports/user-activity`;
     } else if (report.type === 'session-analytics') {
-      endpoint = 'http://localhost:4000/api/admin/reports/session-analytics';
+      endpoint = `${API_URL}/admin/reports/session-analytics`;
     } else {
       return;
     }

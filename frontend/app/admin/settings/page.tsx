@@ -80,13 +80,15 @@ export default function SettingsPage() {
   const [userSearch, setUserSearch] = useState("");
   const [userResults, setUserResults] = useState<string[]>([]);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
     // Fetch email settings from backend
     const fetchEmailSettings = async () => {
       setEmailLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:4000/api/admin/email-settings", {
+        const res = await fetch(`${API_URL}/admin/email-settings`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -149,7 +151,7 @@ export default function SettingsPage() {
     setEmailSaveStatus('idle');
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:4000/api/admin/email-settings", {
+      const res = await fetch(`${API_URL}/admin/email-settings`, {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -177,7 +179,7 @@ export default function SettingsPage() {
     setCustomResult(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:4000/api/admin/send-custom-email", {
+      const res = await fetch(`${API_URL}/admin/send-custom-email`, {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -212,7 +214,7 @@ export default function SettingsPage() {
     setCustomResult(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:4000/api/admin/send-custom-email", {
+      const res = await fetch(`${API_URL}/admin/send-custom-email`, {
         method: "POST",
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -247,7 +249,7 @@ export default function SettingsPage() {
     if (!userSearch) return;
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:4000/api/admin/users?search=${encodeURIComponent(userSearch)}`, {
+      const res = await fetch(`${API_URL}/admin/users?search=${encodeURIComponent(userSearch)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {

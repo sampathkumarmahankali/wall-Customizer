@@ -35,7 +35,7 @@ export default function Tools({
 
   const checkAIStatus = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/ai/status');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/status`);
       const data = await response.json();
       setAiStatus(data.status);
     } catch (error) {
@@ -60,7 +60,7 @@ export default function Tools({
       const formData = new FormData();
       formData.append('image', blob, 'image.jpg');
 
-      const aiResponse = await fetch('http://localhost:4000/api/ai/remove-background', {
+      const aiResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/remove-background`, {
         method: 'POST',
         body: formData
       });

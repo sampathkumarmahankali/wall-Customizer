@@ -45,7 +45,7 @@ export default function AltarViewPage() {
           {(session.data?.blocks || []).map((block: any) => (
             <img
               key={block.id}
-              src={block.src}
+              src={block.src && !block.src.startsWith('http') && !block.src.startsWith('data:') ? `/api/images/url/${block.src}` : block.src}
               alt="Altar item"
               style={{
                 position: 'absolute',

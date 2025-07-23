@@ -5,6 +5,9 @@ const fs = require('fs');
 const pool = require('../db');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 const emailService = require('../services/email-service');
+const { uploadImage, getPresignedUrl, deleteImage } = require('../services/s3-service');
+const multer = require('multer');
+const upload = multer();
 
 const router = express.Router();
 
@@ -207,20 +210,26 @@ router.post('/verify-password', async (req, res) => {
   }
 });
 
-// Protected route to get user profile
+// Protected route to get user profile (return S3 URL if available)
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const [users] = await pool.execute(
-      'SELECT id, name, email, profile_photo, role, subscription_status, is_active, plan FROM users WHERE id = ?',
+      'SELECT id, name, email, profile_photo_s3_key, role, subscription_status, is_active, plan FROM users WHERE id = ?',
       [req.user.id]
     );
-
     if (users.length === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
-
+    const user = users[0];
+    let profilePhotoUrl = null;
+    if (user.profile_photo_s3_key) {
+      profilePhotoUrl = getPresignedUrl(user.profile_photo_s3_key);
+    }
     res.json({
-      user: users[0]
+      user: {
+        ...user,
+        profilePhotoUrl
+      }
     });
   } catch (error) {
     console.error('Profile fetch error:', error);
@@ -249,34 +258,33 @@ router.get('/userid-by-email/:email', async (req, res) => {
   }
 });
 
-// Upload profile photo endpoint (base64)
-router.post('/upload-profile-photo', authenticateToken, async (req, res) => {
+// Upload profile photo endpoint (S3)
+router.post('/upload-profile-photo', authenticateToken, upload.single('image'), async (req, res) => {
   try {
-    const { imageData, fileName, fileType } = req.body;
     const userId = req.user.id;
-
-    if (!imageData) {
-      return res.status(400).json({ message: 'No image data provided' });
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
     }
-
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(fileType)) {
+    if (!allowedTypes.includes(req.file.mimetype)) {
       return res.status(400).json({ message: 'Invalid file type' });
     }
-
-    // Create data URL with proper MIME type
-    const dataUrl = `data:${fileType};base64,${imageData}`;
-
-    // Update user's profile photo in database with base64 data
+    // Get previous S3 key
+    const [[user]] = await pool.query('SELECT profile_photo_s3_key FROM users WHERE id = ?', [userId]);
+    if (user && user.profile_photo_s3_key) {
+      await deleteImage(user.profile_photo_s3_key);
+    }
+    // Upload to S3
+    const s3Key = await uploadImage(req.file.buffer, req.file.mimetype);
+    // Store S3 key in DB
     await pool.execute(
-      'UPDATE users SET profile_photo = ? WHERE id = ?',
-      [dataUrl, userId]
+      'UPDATE users SET profile_photo_s3_key = ? WHERE id = ?',
+      [s3Key, userId]
     );
-
     res.json({
       message: 'Profile photo uploaded successfully',
-      profilePhoto: dataUrl
+      profilePhotoS3Key: s3Key,
+      profilePhotoUrl: getPresignedUrl(s3Key)
     });
   } catch (error) {
     console.error('Profile photo upload error:', error);
@@ -284,17 +292,15 @@ router.post('/upload-profile-photo', authenticateToken, async (req, res) => {
   }
 });
 
-// Remove profile photo endpoint
+// Remove profile photo endpoint (S3)
 router.delete('/remove-profile-photo', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-
-    // Update user's profile photo to null in database
+    // Remove S3 key from DB
     await pool.execute(
-      'UPDATE users SET profile_photo = NULL WHERE id = ?',
+      'UPDATE users SET profile_photo_s3_key = NULL WHERE id = ?',
       [userId]
     );
-
     res.json({
       message: 'Profile photo removed successfully',
       profilePhoto: null

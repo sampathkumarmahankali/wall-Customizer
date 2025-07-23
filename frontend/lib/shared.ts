@@ -1,6 +1,7 @@
 import { getToken } from './auth';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000/api/shared';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE = `${API_URL}/shared`;
 
 export async function getAllSharedSessions() {
   const token = getToken();

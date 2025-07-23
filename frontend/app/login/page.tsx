@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import Footer from "@/components/shared/Footer"
 import { setToken } from "@/lib/auth";
 
-const API_URL = "http://localhost:4000/api"
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")

@@ -36,13 +36,15 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem("token");
         
         // Fetch dashboard stats
-        const statsResponse = await fetch('http://localhost:4000/api/admin/dashboard', {
+        const statsResponse = await fetch(`${API_URL}/admin/dashboard`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -50,7 +52,7 @@ export default function AdminDashboard() {
         });
 
         // Fetch analytics data
-        const analyticsResponse = await fetch('http://localhost:4000/api/admin/analytics?period=30', {
+        const analyticsResponse = await fetch(`${API_URL}/admin/analytics?period=30`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -77,7 +79,7 @@ export default function AdminDashboard() {
   const handleExportUsers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch('http://localhost:4000/api/admin/export/users', {
+      const response = await fetch(`${API_URL}/admin/export/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

@@ -14,13 +14,15 @@ export default function VerifyEmailPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
     setSuccess("");
     try {
-      const response = await fetch("http://localhost:4000/api/auth/verify-email", {
+      const response = await fetch(`${API_URL}/auth/verify-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code }),
