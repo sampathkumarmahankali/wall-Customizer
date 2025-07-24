@@ -13,6 +13,7 @@ import {
   Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import VoiceImageEditor from "@/components/ai/VoiceImageEditor";
 
 interface ToolsProps {
   selectedImage: any;
@@ -28,6 +29,7 @@ export default function Tools({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingType, setProcessingType] = useState<string>("");
   const [aiStatus, setAiStatus] = useState<any>(null);
+  const [activeTool, setActiveTool] = useState<'removeBg' | 'voiceEditor'>('removeBg');
 
   React.useEffect(() => {
     checkAIStatus();
@@ -91,26 +93,33 @@ export default function Tools({
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-purple-600" />
-          Tools
-        </CardTitle>
-        <CardDescription>
-          Enhance your images with smart features
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="background" className="w-full">
-          <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="background" className="text-xs">
-              <ImageIcon className="h-3 w-3 mr-1" />
-              Background
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="background" className="space-y-4">
+    <>
+      <div className="flex gap-2 mb-4">
+        <button
+          className={`flex-1 px-2 py-1 rounded text-xs font-semibold border transition-colors ${activeTool === 'removeBg' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}`}
+          onClick={() => setActiveTool('removeBg')}
+        >
+          Remove Background
+        </button>
+        <button
+          className={`flex-1 px-2 py-1 rounded text-xs font-semibold border transition-colors ${activeTool === 'voiceEditor' ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'}`}
+          onClick={() => setActiveTool('voiceEditor')}
+        >
+          Voice Editor
+        </button>
+      </div>
+      {activeTool === 'removeBg' && (
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              Remove Background
+            </CardTitle>
+            <CardDescription>
+              Enhance your images with smart background removal
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Background Removal</span>
@@ -118,7 +127,6 @@ export default function Tools({
                   {isServiceAvailable('removeBg') ? "Available" : "Unavailable"}
                 </Badge>
               </div>
-              
               <Button 
                 onClick={handleBackgroundRemoval}
                 disabled={!selectedImage || !isServiceAvailable('removeBg') || isProcessing}
@@ -136,28 +144,29 @@ export default function Tools({
                   </>
                 )}
               </Button>
-              
-              {!isServiceAvailable('removeBg') && (
-                <p className="text-xs text-muted-foreground">
-                  Remove.bg API key required for background removal
-                </p>
-              )}
+              <p className="text-xs text-muted-foreground">
+                Remove.bg API key required for background removal
+              </p>
             </div>
-          </TabsContent>
-        </Tabs>
-
-        {isProcessing && (
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-              <span className="text-sm font-medium text-blue-800">
-                Processing...
-              </span>
-            </div>
-            <Progress value={33} className="h-2" />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+            {isProcessing && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">
+                    Processing...
+                  </span>
+                </div>
+                <Progress value={33} className="h-2" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+      {activeTool === 'voiceEditor' && (
+        <div className="mt-0">
+          <VoiceImageEditor image={selectedImage} onImageUpdate={onImageUpdate} />
+        </div>
+      )}
+    </>
   );
 } 
