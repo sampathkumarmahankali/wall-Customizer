@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import WallEditor from "@/components/wall/WallEditor";
+import VoiceImageEditor from "@/components/ai/VoiceImageEditor";
 
 export default function EditorPage() {
   const router = useRouter();
@@ -86,5 +87,7 @@ export default function EditorPage() {
     }
   }
 
-  return <WallEditor initialSettings={initialSettings} editable={editable} />;
+  return (
+    <WallEditor initialSettings={initialSettings} editable={editable} />
+  );
 } 
